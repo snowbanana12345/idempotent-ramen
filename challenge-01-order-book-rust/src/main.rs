@@ -11,6 +11,10 @@ mod ut;
 mod bts_impl;
 #[path = "../solution/vec_impl.rs"]
 mod vec_impl;
+#[path = "../solution/op_bst_impl.rs"]
+mod op_bts_impl;
+#[path = "../solution/heap_impl.rs"]
+mod heap_impl;
 
 
 use hftu_bench::{self, black_box, clobber, cycle_start, cycle_end};

@@ -1,6 +1,10 @@
 use crate::types::OrderBook;
 
+use std::collections::HashSet;
+
 pub struct VecOb {
+    bid_st : HashSet<u64>,
+    ask_st : HashSet<u64>,
     bids: Vec<Level>,  // price -> total qty (descending via Reverse)
     asks: Vec<Level>,  // price -> total qty (ascending)
 }
@@ -13,6 +17,8 @@ pub struct Level{
 impl OrderBook for VecOb{
     fn new() -> Self {
         Self {
+            bid_st: HashSet::new(),
+            ask_st: HashSet::new(),
             bids: Vec::with_capacity(1000),
             asks: Vec::with_capacity(1000),
         }
@@ -27,6 +33,7 @@ impl OrderBook for VecOb{
                 }
                 idx += 1;
             }
+            self.bid_st.insert(id);
             self.bids.insert(idx, Level {price: price, order_id: id});
         } else {
             let mut idx: usize = 0;
@@ -36,18 +43,25 @@ impl OrderBook for VecOb{
                 }
                 idx += 1;
             }
+            self.ask_st.insert(id);
             self.asks.insert(idx, Level {price: price, order_id: id});
         }
     }
 
     fn cancel_order(&mut self, id: u64) {
-        if let Some(pos) = self.bids.iter().position(|l| l.order_id == id) {
-            self.bids.remove(pos);  
-            return;
+        if self.bid_st.contains(&id) {
+            if let Some(pos) = self.bids.iter().position(|l| l.order_id == id) {
+                self.bids.remove(pos);  
+                self.bid_st.remove(&id);
+                return;
+            }
         }
-        if let Some(pos) = self.asks.iter().position(|l| l.order_id == id) {
-            self.asks.remove(pos);  
-            return;
+        if self.ask_st.contains(&id){
+            if let Some(pos) = self.asks.iter().position(|l| l.order_id == id) {
+                self.asks.remove(pos);  
+                self.ask_st.remove(&id);
+                return;
+            }
         }
     }
 
@@ -90,5 +104,10 @@ mod vec_ut{
     #[test]
     fn test_empty(){
         ut::ut_common::test_empty(VecOb::new());
+    }
+    
+    #[test]
+    fn test_duplciate(){
+        ut::ut_common::test_duplicate_price(VecOb::new());
     }
 }

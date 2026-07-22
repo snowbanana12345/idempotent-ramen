@@ -35,4 +35,16 @@ pub mod ut_common{
         assert_eq!(ob.best_ask(), 0);
         assert_eq!(ob.best_bid(), 0);
     }
+
+    pub fn test_duplicate_price<T>(mut ob: T) where T: OrderBook
+    {
+        ob.add_order(1, 1, 172 ,5);
+        ob.add_order(2, 1, 173 ,5);
+        ob.add_order(3, 1, 172 ,5);
+        assert_eq!(ob.best_ask(), 172);
+        ob.cancel_order(1);
+        assert_eq!(ob.best_ask(), 172);
+        ob.cancel_order(3);
+        assert_eq!(ob.best_ask(), 173);
+    }
 }
