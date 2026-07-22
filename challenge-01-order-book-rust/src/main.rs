@@ -5,6 +5,13 @@ mod types;
 
 #[path = "../solution/mod.rs"]
 mod solution;
+#[path = "../solution/ut.rs"]
+mod ut;
+#[path = "../solution/bts_impl.rs"]
+mod bts_impl;
+#[path = "../solution/vec_impl.rs"]
+mod vec_impl;
+
 
 use hftu_bench::{self, black_box, clobber, cycle_start, cycle_end};
 use types::OrderBook;
