@@ -1,7 +1,7 @@
 use crate::types::OrderBook;
 use std::collections::{BinaryHeap, HashSet};
 
-struct HeapOb{
+pub struct HeapOb{
     id_st: HashSet<u64>,
     bids: BinaryHeap<Level>,
     asks: BinaryHeap<Level>
@@ -37,10 +37,10 @@ impl OrderBook for HeapOb{
     fn add_order(&mut self, id: u64, side: i32, price: i64, quantity: i64){
         self.id_st.insert(id);
         if side == 0{
-            self.bids.push(Level {price: - price, order_id: id});
+            self.bids.push(Level {price: price, order_id: id});
         }
         else {
-            self.asks.push(Level {price: price, order_id: id});
+            self.asks.push(Level {price: - price, order_id: id});
         }
     }
 
@@ -68,14 +68,14 @@ impl OrderBook for HeapOb{
 
     fn best_bid(&self) -> i64{
         match self.bids.peek(){
-            Some(level) => - level.price,
+            Some(level) => level.price,
             None => 0
         }
     }
 
     fn best_ask(&self) -> i64{
         match self.asks.peek(){
-            Some(level) => level.price,
+            Some(level) => - level.price,
             None => 0
         }
     }
