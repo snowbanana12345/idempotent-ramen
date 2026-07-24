@@ -55,3 +55,31 @@ if best_price is cancelled, linear scan the array for the next best price
 The linear scan is cache friendly. But the swap is not given that the entire vector does not fit into cache.
 best_bid() - single array access
 best_ask() - single array access
+
+
+## Heap
+the most intuitive, since we only need the top element.
+- **`add_order(id, side, price, quantity)`** — O(log n)
+- **`cancel_order(id)`** — O(log n)
+- **`best_bid()`** — O(1)
+- **`best_ask()`** — O(1)
+on Add: Store the price , order_id in heap, store all order_ids in a hashSet
+on cancel:  check if the top element is still in the hashSet, pop until the top of heap is valid
+
+best performance 
+cycles_per_op : ~10-15
+
+## Set
+Store orders in a set, when querying best bid/ask, linear scan the set
+This is implementation hinges on access being called infrequently
+
+- **`add_order(id, side, price, quantity)`** — O(log n)
+- **`cancel_order(id)`** — O(log n)
+- **`best_bid()`** — O(n)
+- **`best_ask()`** — O(n)
+
+worst purformance
+cycles_per_op: ~2000
+It's likely because a full scan on the HashMap is required on every access of best_bid(), best_ask()
+For the vector implementation, the worst case is O(n) but only some of the access
+will hit the full linear scan.

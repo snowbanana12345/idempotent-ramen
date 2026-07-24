@@ -15,6 +15,8 @@ mod vec_impl;
 mod op_bts_impl;
 #[path = "../solution/heap_impl.rs"]
 mod heap_impl;
+#[path = "../solution/set_impl.rs"]
+mod set_impl;
 
 
 use hftu_bench::{self, black_box, clobber, cycle_start, cycle_end};
