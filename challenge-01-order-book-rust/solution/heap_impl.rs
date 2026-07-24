@@ -1,8 +1,9 @@
 use crate::types::OrderBook;
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::{BinaryHeap};
+use rustc_hash::FxHashSet;
 
 pub struct HeapOb{
-    id_st: HashSet<u64>,
+    id_st: FxHashSet<u64>,
     bids: BinaryHeap<Level>,
     asks: BinaryHeap<Level>
 }
@@ -28,7 +29,7 @@ impl Ord for Level {
 impl OrderBook for HeapOb{
     fn new() -> Self{
         Self{
-            id_st: HashSet::new(),
+            id_st: FxHashSet::default(),
             bids: BinaryHeap::new(),
             asks: BinaryHeap::new(),
         }

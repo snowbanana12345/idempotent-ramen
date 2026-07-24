@@ -1,79 +1,70 @@
 use crate::types::OrderBook;
-use std::collections::{BTreeSet, HashMap};
-
+use std::collections::{BTreeMap};
+use rustc_hash::FxHashMap;
 
 pub struct OpBstOb {
-    bid_prices: HashMap<u64, i64>,
-    ask_prices: HashMap<u64, i64>,
-    bids: BTreeSet<Level>, 
-    asks: BTreeSet<Level>, 
+    orders: FxHashMap<u64, OrderLite>,
+    bids: BTreeMap<i64, u32>, 
+    asks: BTreeMap<i64, u32>, 
 }
 
-#[derive(Debug, PartialEq, Eq)]
-struct Level {
+struct OrderLite{
     price: i64,
-    order_id: u64,
-}
-
-impl PartialOrd for Level {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.price.partial_cmp(&other.price)
-    }
-}
-
-impl Ord for Level {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self.price.cmp(&other.price){
-            std::cmp::Ordering::Less => std::cmp::Ordering::Less,
-            std::cmp::Ordering::Greater => std::cmp::Ordering::Greater,
-            std::cmp::Ordering::Equal => self.order_id.cmp(&other.order_id),
-        }
-    }
+    is_buy: bool,
 }
 
 impl OrderBook for OpBstOb {
     fn new() -> Self {
         Self {
-            bid_prices: HashMap::new(),
-            ask_prices: HashMap::new(),
-            bids: BTreeSet::new(),
-            asks: BTreeSet::new(),
+            orders: FxHashMap::default(),
+            bids: BTreeMap::new(),
+            asks: BTreeMap::new(),
         }
     }
 
     fn add_order(&mut self, id: u64, side: i32, price: i64, quantity: i64) {
+        self.orders.insert(id, OrderLite {price: price, is_buy: side == 0});
         if side == 0 {
-            self.bid_prices.insert(id, price);
-            self.bids.insert(Level{price: price, order_id: id});
+            self.bids.entry(price).and_modify(|e| *e += 1).or_insert(1);
         } else {
-            self.ask_prices.insert(id, price);
-            self.asks.insert(Level{price: price, order_id: id});
+            self.asks.entry(price).and_modify(|e| *e += 1).or_insert(1);
         }
     }
 
     fn cancel_order(&mut self, id: u64) {
-        if let Some(price) = self.bid_prices.get(&id){
-            self.bids.remove(&Level {price: *price, order_id: id});
-            self.bid_prices.remove(&id);
+        let Some(order) = self.orders.remove(&id) else {
+            return;
+        };
+        if order.is_buy{
+            if let Some(1) = self.bids.get(&order.price) {
+                self.bids.remove(&order.price);
+            }
+            else {
+                self.bids.entry(order.price).and_modify(|e| *e -= 1);
+            }
         }
-        else if let Some(price) = self.ask_prices.get(&id){
-            self.asks.remove(&Level {price: *price, order_id: id});
-            self.ask_prices.remove(&id);
+        else {
+            if let Some(1) = self.asks.get(&order.price) {
+                self.asks.remove(&order.price);
+            }
+            else {
+                self.asks.entry(order.price).and_modify(|e| *e -= 1);
+            }
         }
     }
 
     fn best_bid(&self) -> i64 {
-        if self.bids.is_empty(){
-            return 0;
+        if let Some(price) = self.bids.keys().next_back() {
+            return *price;
         }
-        self.bids.last().unwrap().price
+        0
     }
 
     fn best_ask(&self) -> i64 {
-        if self.asks.is_empty(){
-            return 0;
+        if let Some(price) = self.asks.keys().next(){
+            return *price;
         }
-        self.asks.first().unwrap().price
+        0
     }
 }
 

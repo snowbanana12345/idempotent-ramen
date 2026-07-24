@@ -9,3 +9,4 @@ path = "src/main.rs"
 
 [dependencies]
 hftu-bench = { path = "../common/hftu-bench" }
+rustc-hash = "2.1.3"

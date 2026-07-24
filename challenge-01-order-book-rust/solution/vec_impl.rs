@@ -1,14 +1,15 @@
 use crate::types::OrderBook;
 
-use std::collections::HashSet;
+use rustc_hash::FxHashSet;
 
 pub struct VecOb {
-    bid_st : HashSet<u64>,
-    ask_st : HashSet<u64>,
+    bid_st : FxHashSet<u64>,
+    ask_st : FxHashSet<u64>,
     bids: Vec<Level>,  // price -> total qty (descending via Reverse)
     asks: Vec<Level>,  // price -> total qty (ascending)
 }
 
+#[derive(Clone)]
 pub struct Level{
     price: i64,
     order_id: u64
@@ -17,8 +18,8 @@ pub struct Level{
 impl OrderBook for VecOb{
     fn new() -> Self {
         Self {
-            bid_st: HashSet::new(),
-            ask_st: HashSet::new(),
+            bid_st: FxHashSet::default(),
+            ask_st: FxHashSet::default(),
             bids: Vec::with_capacity(1000),
             asks: Vec::with_capacity(1000),
         }
@@ -26,41 +27,77 @@ impl OrderBook for VecOb{
 
     fn add_order(&mut self, id: u64, side: i32, price: i64, quantity: i64) {
         if side == 0 {
-            let mut idx: usize = 0;
-            for l in self.bids.iter(){
-                if l.price <= price{
-                    break;
-                }
-                idx += 1;
+            if !self.bids.is_empty() && price > self.bids[0].price{
+                self.bids.push(self.bids[0].clone());
+                self.bids[0].price = price;
+                self.bids[0].order_id = id;
+            }
+            else {
+                self.bids.push(Level {price: price, order_id: id});
             }
             self.bid_st.insert(id);
-            self.bids.insert(idx, Level {price: price, order_id: id});
         } else {
-            let mut idx: usize = 0;
-            for l in self.asks.iter(){
-                if l.price >= price{
-                    break;
-                }
-                idx += 1;
+            if !self.asks.is_empty() && price < self.asks[0].price{
+                self.asks.push(self.asks[0].clone());
+                self.asks[0].price = price;
+                self.asks[0].order_id = id;
+            }
+            else {
+                self.asks.push(Level {price: price, order_id: id});
             }
             self.ask_st.insert(id);
-            self.asks.insert(idx, Level {price: price, order_id: id});
         }
     }
 
     fn cancel_order(&mut self, id: u64) {
         if self.bid_st.contains(&id) {
-            if let Some(pos) = self.bids.iter().position(|l| l.order_id == id) {
-                self.bids.remove(pos);  
-                self.bid_st.remove(&id);
-                return;
+            if self.bids[0].order_id == id{ // yikes, we have to search for the max again.
+                self.bids.swap_remove(0);
+                if self.bids.is_empty(){
+                    return;
+                }
+                let mut idx : usize = 0;
+                let mut mx_price: i64 = i64::MIN;
+                for i in 0..self.bids.len(){
+                    if self.bids[i].price > mx_price{
+                        idx = i;
+                        mx_price = self.bids[i].price;
+                    }
+                }
+                self.bids.swap(0, idx);
+            }
+            else {
+                for i in 0..self.bids.len(){
+                    if self.bids[i].order_id == id{
+                        self.bids.swap_remove(i);
+                        break;
+                    }
+                }
             }
         }
         if self.ask_st.contains(&id){
-            if let Some(pos) = self.asks.iter().position(|l| l.order_id == id) {
-                self.asks.remove(pos);  
-                self.ask_st.remove(&id);
-                return;
+            if self.asks[0].order_id == id{ // yikes, we have to search for the max again.
+                self.asks.swap_remove(0);
+                if self.asks.is_empty(){
+                    return;
+                }
+                let mut idx : usize = 0;
+                let mut mx_price: i64 = i64::MAX;
+                for i in 0..self.asks.len(){
+                    if self.asks[i].price < mx_price{
+                        idx = i;
+                        mx_price = self.asks[i].price;
+                    }
+                }
+                self.asks.swap(0, idx);
+            }
+            else {
+                for i in 0..self.asks.len(){
+                    if self.asks[i].order_id == id{
+                        self.asks.swap_remove(i);
+                        break;
+                    }
+                }
             }
         }
     }
