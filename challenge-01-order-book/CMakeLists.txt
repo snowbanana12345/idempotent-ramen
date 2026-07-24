@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 project(challenge-01-order-book LANGUAGES CXX)
 include(FetchContent)
 
-add_executable(benchmark benchmark.cpp solution/bst_impl.cpp)
+# add_executable(benchmark benchmark.cpp solution/bst_impl.cpp)
+add_executable(benchmark benchmark.cpp solution/heap_impl.cpp)
 
 # common/ is a sibling locally, but copied inside during certified runs
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
