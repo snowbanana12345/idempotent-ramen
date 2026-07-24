@@ -9,8 +9,8 @@ TEST(AddOrder, Bid){
     EXPECT_EQ(ob.best_bid(), 15);
     ob.add_order(8, 0, 17, 3);
     EXPECT_EQ(ob.best_bid(), 17);
-    ob.add_order(8, 0, 14, 3);
-    ob.add_order(8, 0, 18, 3);
+    ob.add_order(9, 0, 14, 3);
+    ob.add_order(10, 0, 18, 3);
     EXPECT_EQ(ob.best_bid(), 18);
 }
 

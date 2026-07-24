@@ -8,5 +8,6 @@ Just some notes on set up for C++
 - build seperate binaries with each implementation against the same unittest file.
 
 Results are similar
-Heap implementation:
-cycles_per_op : 26
+Bst implementation: cycles_per_op : 100
+Heap implementation: cycles_per_op : 26
+Set implementation: cycles_per_op : 15400 (Oh, my ramen)
