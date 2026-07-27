@@ -141,11 +141,15 @@ int64_t MultiOrderBook::volume_near_best(uint16_t symbol, int side, int64_t dept
 
 QueuePosition MultiOrderBook::get_queue_position(uint64_t our_id) const {
     auto oit = our_orders_.find(our_id);
-    if (oit == our_orders_.end()) return {-1, 0};
+    if (oit == our_orders_.end()) {
+        return {-1, 0};
+    }
 
     uint64_t exchange_id = oit->second;
     auto eit = orders_.find(exchange_id);
-    if (eit == orders_.end()) return {-1, 0}; // not in book yet
+    if (eit == orders_.end()) {
+        return {-1, 0}; // not in book yet
+    }
 
     auto& order = eit->second;
     auto& levels = (order.side == 0) ? books_[order.symbol].bids : books_[order.symbol].asks;
