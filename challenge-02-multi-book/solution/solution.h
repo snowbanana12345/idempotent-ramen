@@ -6,10 +6,12 @@
 #include <cstdint>
 #include <list>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <iostream>
 
 namespace hftu {
+class Impl;
 
 class MultiOrderBook {
 public:
@@ -44,29 +46,9 @@ public:
 
 private:
     Venue& venue_;
+    std::unique_ptr<Impl> impl;
 
-    struct Order {
-        uint16_t symbol;
-        int8_t side;
-        int64_t price;
-        int64_t qty;
-    };
-
-    // Per-level FIFO queue
-    struct Level {
-        int64_t total_qty = 0;
-        int32_t count = 0;
-        std::list<std::pair<uint64_t, int64_t>> queue; // (exchange_id, qty) in FIFO order
-    };
-
-    struct SymbolBook {
-        std::map<int64_t, Level> bids; // rbegin() = best bid
-        std::map<int64_t, Level> asks; // begin() = best ask
-    };
-
-    std::unordered_map<uint64_t, Order> orders_;        // exchange_id -> order
-    std::unordered_map<uint64_t, uint64_t> our_orders_; // our_id -> exchange_id
-    SymbolBook books_[NUM_SYMBOLS];
+    
 };
 
 } // namespace hftu
