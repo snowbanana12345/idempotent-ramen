@@ -1,4 +1,4 @@
-add_executable(default_test "${CMAKE_SOURCE_DIR}/solution/solution.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
+add_executable(default_test "${CMAKE_SOURCE_DIR}/solution/default_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
 
 include(GoogleTest)
 

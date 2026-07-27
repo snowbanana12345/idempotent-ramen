@@ -44,11 +44,9 @@ public:
     // Queue position for one of our orders.
     QueuePosition get_queue_position(uint64_t our_id) const;
 
-private:
-    Venue& venue_;
-    std::unique_ptr<Impl> impl;
-
-    
+    private:
+        Venue& venue_;
+        std::unique_ptr<Impl> impl;
 };
 
 } // namespace hftu
