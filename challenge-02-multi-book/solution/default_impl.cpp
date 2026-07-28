@@ -29,7 +29,7 @@ namespace hftu {
             venue.cancel_order(it->second);
             our_orders_.erase(it);
         }
-
+        
         // === Exchange feed ===
         // All orders (everyone's, including ours when they appear).
         void add_order(uint64_t exchange_id, uint16_t symbol, int side,
