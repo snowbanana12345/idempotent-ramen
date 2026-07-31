@@ -394,10 +394,10 @@ TEST(Cancel, Basic){
     book.cancel_our_order(our_id);
     book.cancel_order(exchange_id);
 
-    bid = book.best_bid(symbol);
-    EXPECT_EQ(bid.count, 0);
-    EXPECT_EQ(bid.qty, 0);
-    EXPECT_EQ(bid.price, 0);
+    TopLevel bid2 = book.best_bid(symbol);
+    EXPECT_EQ(bid2.count, 0);
+    EXPECT_EQ(bid2.qty, 0);
+    EXPECT_EQ(bid2.price, 0);
 }
 
 TEST(Cancel, QueueOrder){

@@ -1,6 +1,7 @@
 #include <list>
 #include <map>
 #include "../venue.h"
+#include <iostream>
 
 namespace hftu{
     class QueueOrder{
@@ -31,7 +32,12 @@ namespace hftu{
                         break;
                     }
                 }
+                
                 it->second.erase(qit);
+
+                if (it->second.size() == 0){
+                    queues.erase(it);
+                }
             }
 
             QueuePosition query(int64_t price, uint64_t order_id) const{
@@ -40,15 +46,18 @@ namespace hftu{
 
                 int64_t qty_ahead = 0;
                 int32_t index = 0;
+                bool found = false;
 
                 for (auto qit = it->second.begin(); qit != it->second.end(); qit++){
                     if (qit->id == order_id){
+                        found = true;
                         break;
                     }
                     index++;
                     qty_ahead += qit->quantity;
                 }
-                return {index, qty_ahead};
+                if (found) return {index, qty_ahead};
+                return {-1, 0};
             }
         
         private:
