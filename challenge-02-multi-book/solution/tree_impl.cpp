@@ -65,14 +65,12 @@ namespace hftu{
                     ask_books[symbol].remove(price, qty);
                 }
                 else{
-                    std::cout << "remove1 : " << symbol << " - " << exchange_id << std::endl;
                     bid_books[symbol].remove(price, qty);
                 }
                 orders_.erase(it);
             }
 
             TopLevel best_bid(uint16_t symbol) const{
-                std::cout << "top : " << symbol << std::endl;
                 return bid_books[symbol].best();
             }
 
