@@ -25,12 +25,13 @@ namespace hftu{
                 auto it = queues.find(price);
                 if (it == queues.end()) return;
 
-                for (auto qit = it->second.begin(); qit != it->second.end(); qit++){
+                auto qit = it->second.begin();
+                for (; qit != it->second.end(); qit++){
                     if (qit->id == order_id){
-                        it->second.erase(qit);
                         break;
                     }
                 }
+                it->second.erase(qit);
             }
 
             QueuePosition query(int64_t price, uint64_t order_id) const{

@@ -30,11 +30,11 @@ namespace hftu{
                 orders_[exchange_id] = {symbol, static_cast<int8_t>(side), price, qty};
                 queue_orders[symbol].append(price, exchange_id, qty);
 
-                if (side){ // bid
-                    bid_books[symbol].add(price, qty);
+                if (side){ // side = 1 means ask
+                    ask_books[symbol].add(price, qty);
                 }
                 else {
-                    ask_books[symbol].add(price, qty);
+                    bid_books[symbol].add(price, qty);
                 }
             }
 
@@ -47,11 +47,11 @@ namespace hftu{
                 const auto& [symbol, side, price, qty] = order;
                 queue_orders[symbol].modify_quantity(price, exchange_id, new_qty);
 
-                if (side){
-                    bid_books[symbol].modify(price, new_qty - old_qty);
+                if (side){ // side = 1 means ask
+                    ask_books[symbol].modify(price, new_qty - old_qty);
                 }
                 else {
-                    ask_books[symbol].modify(price, new_qty - old_qty);
+                    bid_books[symbol].modify(price, new_qty - old_qty);
                 }
             }
 
@@ -62,11 +62,11 @@ namespace hftu{
                 orders_.erase(it);
                 queue_orders[symbol].remove(price, exchange_id);
 
-                if (side){ // bid
-                    bid_books[symbol].remove(price, qty);
+                if (side){ // side = 1 means ask
+                    ask_books[symbol].remove(price, qty);
                 }
                 else{
-                    ask_books[symbol].remove(price, qty);
+                    bid_books[symbol].remove(price, qty);
                 }
             }
 
@@ -80,19 +80,19 @@ namespace hftu{
 
             int get_top_levels(uint16_t symbol, int side, int n, TopLevel* out) const{
                 if (side){
-                    return bid_books[symbol].get_top_levels(n, out);
+                    return ask_books[symbol].get_top_levels(n, out);
                 }
                 else {
-                    return ask_books[symbol].get_top_levels(n, out);
+                    return bid_books[symbol].get_top_levels(n, out);
                 }
             }
 
             int64_t volume_near_best(uint16_t symbol, int side, int64_t depth) const{
                 if (side){
-                    return bid_books[symbol].volume_near_best(depth);
+                    return ask_books[symbol].volume_near_best(depth);
                 }
                 else{
-                    return ask_books[symbol].volume_near_best(depth);
+                    return bid_books[symbol].volume_near_best(depth);   
                 }
             }   
 
