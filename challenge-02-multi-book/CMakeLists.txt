@@ -3,6 +3,7 @@ project(challenge-02-multi-book LANGUAGES CXX)
 include(FetchContent)
 
 add_executable(benchmark benchmark.cpp solution/default_impl.cpp)
+# add_executable(benchmark benchmark.cpp solution/tree_impl.cpp)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
     include(${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
