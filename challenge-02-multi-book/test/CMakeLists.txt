@@ -1,5 +1,5 @@
 add_executable(default_test "${CMAKE_SOURCE_DIR}/solution/default_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
-add_executable(tree_test "${CMAKE_SOURCE_DIR}/solution/avl_tree_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
+add_executable(tree_test "${CMAKE_SOURCE_DIR}/solution/tree_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
 
 include(GoogleTest)
 

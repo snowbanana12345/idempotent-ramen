@@ -1,101 +1,10 @@
 #include "solution.h"
 #include <array>
+#include "agg_book.h"
+#include "queue_order.h"
 
 
 namespace hftu{
-    template <bool ascending>
-    class AggBook{
-        public:
-            void add(int64_t price, int64_t quantity){
-                auto it = book.find(price);
-                if (it == book.end()){
-                    book[price] = {1, quantity};
-                }
-                else {
-                    book[price].count++;
-                    book[price].quantity += quantity;
-                }
-            }
-
-            void modify(int64_t price, int64_t change_quantity){
-                book[price].quantity += change_quantity;
-            }
-
-            void remove(int64_t price, int64_t quantity){
-                book[price].count--;
-                book[price].quantity -= quantity;
-                if (book[price].count == 0){
-                    book.erase(price);
-                }
-            }
-
-            TopLevel best() const{
-                if (book.empty()) return {0, 0, 0};
-                if (ascending){
-                    auto it = book.begin();
-                    return {it->first, it->second.quantity, it->second.count};
-                }
-                else {
-                    auto it = book.rbegin();
-                    return {it->first, it->second.quantity, it->second.count};
-                }
-            }
-
-            int get_top_levels(int n, TopLevel* out) const {
-                if (ascending){
-                    auto it = book.begin();
-                    int i = 0;
-                    while(i < n && it != book.end()){
-                        out[i].price = it->first;
-                        out[i].qty = it->second.quantity;
-                        out[i].count = it->second.count;
-                        it++; i++;
-                    }
-                    return i;
-                }
-                else {
-                    auto it = book.rbegin();
-                    int i = 0;
-                    while(i < n && it != book.rend()){
-                        out[i].price = it->first;
-                        out[i].qty = it->second.quantity;
-                        out[i].count = it->second.count;
-                        it++; i++;
-                    }
-                    return i;
-                }
-            }
-
-            int64_t volume_near_best(int64_t depth) const {
-                if (depth == 0 || book.empty()) return 0;
-                if (ascending){
-                    auto it = book.begin();
-                    int64_t best_price = it->first;
-                    int64_t volume = 0;
-                    for (; it != book.end() && it->first <= best_price + depth - 1; it++){
-                        volume += it->second.quantity;
-                    }
-                    return volume;
-                }
-                else{
-                    auto it = book.rbegin();
-                    int64_t best_price = it->first;
-                    int64_t volume = 0;
-                    for (; it != book.rend() && it->first >= best_price - depth + 1; it++){
-                        volume += it->second.quantity;
-                    }
-                    return volume;
-                }
-            }
-
-        private:
-            struct Level{
-                int32_t count;
-                int64_t quantity;
-            };
-            std::map<int64_t, Level> book;
-    };
-
     class Impl{
         public: 
             void send_order(uint64_t our_id, uint16_t symbol, int side, int64_t price, int64_t qty, Venue& venue) {
@@ -119,6 +28,7 @@ namespace hftu{
 
             void add_order(uint64_t exchange_id, uint16_t symbol, int side, int64_t price, int64_t qty){
                 orders_[exchange_id] = {symbol, static_cast<int8_t>(side), price, qty};
+                queue_orders[symbol].append(price, exchange_id, qty);
 
                 if (side){ // bid
                     bid_books[symbol].add(price, qty);
@@ -135,6 +45,7 @@ namespace hftu{
                 int64_t old_qty = order.qty;
                 order.qty = new_qty;
                 const auto& [symbol, side, price, qty] = order;
+                queue_orders[symbol].modify_quantity(price, exchange_id, new_qty);
 
                 if (side){
                     bid_books[symbol].modify(price, new_qty - old_qty);
@@ -149,6 +60,7 @@ namespace hftu{
                 if (it == orders_.end()) return;
                 const auto& [symbol, side, price, qty] = it->second;
                 orders_.erase(it);
+                queue_orders[symbol].remove(price, exchange_id);
 
                 if (side){ // bid
                     bid_books[symbol].remove(price, qty);
@@ -179,10 +91,25 @@ namespace hftu{
                 if (side){
                     return bid_books[symbol].volume_near_best(depth);
                 }
+                else{
+                    return ask_books[symbol].volume_near_best(depth);
+                }
             }   
 
             QueuePosition get_queue_position(uint64_t our_id) const{
-                return {-1, 0};
+                auto oit = our_orders_.find(our_id);
+                if (oit == our_orders_.end()) {
+                    return {-1, 0};
+                }
+
+                uint64_t exchange_id = oit->second;
+                auto eit = orders_.find(exchange_id);
+                if (eit == orders_.end()) {
+                    return {-1, 0}; 
+                }
+
+                const auto& [symbol, side, price, qty] = eit->second;
+                return queue_orders[symbol].query(price, exchange_id);
             }
 
         private:
@@ -198,6 +125,7 @@ namespace hftu{
 
             AggBook<true> ask_books[200];
             AggBook<false> bid_books[200];
+            QueueOrder queue_orders[200];
     };
 }
 
