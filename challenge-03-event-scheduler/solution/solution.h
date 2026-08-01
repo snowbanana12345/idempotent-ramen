@@ -2,7 +2,7 @@
 // Challenge 03: Event Scheduler — Naive Reference Implementation
 // This is correct but slow. You can do much better!
 
-#include "scheduler.h"
+#include "../scheduler.h"
 #include <map>
 #include <unordered_map>
 #include <climits>
@@ -31,10 +31,12 @@ namespace hftu {
 //   next_event_time() -> int64_t
 //     Time of next event, or INT64_MAX if empty.
 //
+class Impl;
+
 class EventScheduler {
 public:
-    EventScheduler() = default;
-    ~EventScheduler() = default;
+    EventScheduler();
+    ~EventScheduler();
 
     void schedule(uint64_t event_id, int64_t time_us);
     bool cancel(uint64_t event_id);
@@ -43,10 +45,7 @@ public:
     int64_t next_event_time() const;
 
 private:
-    // time -> event_ids at that time
-    std::multimap<int64_t, uint64_t> timeline_;
-    // event_id -> iterator into timeline_ (for cancel)
-    std::unordered_map<uint64_t, std::multimap<int64_t, uint64_t>::iterator> lookup_;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace hftu
