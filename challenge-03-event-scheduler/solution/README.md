@@ -1,10 +1,8 @@
 ## introduction
 
-We have a sorted set problem
-
-
-- Batch efficiency, if the entire batch could be loaded into cache in one go, that will improve batch efficiency a lot.
-we assign a vector to each 1us slot.
+We have a sorted set problem, we can try to optimize it
+- Near, mid, and far handling
+- Batch efficiency, ideally the entire batch could be loaded into cache in one go.
 
 
 
@@ -76,3 +74,4 @@ the 2,000 is the guess that we take the vast majority of the time, there will no
 we also create an overflow buffer that is a priority_queue incase a microsecond slot overflows.
 Hopefully this overflow buffer ends up small enough that it fits into cache
 To avoid having to dynamically allocate memory, we use a ring buffer and just keep advancing around it.
+
