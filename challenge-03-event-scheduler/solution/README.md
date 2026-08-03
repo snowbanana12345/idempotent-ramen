@@ -68,9 +68,9 @@ pour the mid to the near and far to the mid which costs computation.
 
 ## micro second bucket ring buffer
 
-Since the nearest 1000 us are hot, we create a 1,000 X 2,000 buffer
+Since the nearest 1000 us are hot, we create a 1,000 X 1,000 buffer
 the first 1000 repesents we want to have 1 slot for each microsecond.
-the 2,000 is the guess that we take the vast majority of the time, there will not be more than 2000 at a time
+the 1,000 is the guess that we take the vast majority of the time, there will not be more than 1000 at a time
 we also create an overflow buffer that is a priority_queue incase a microsecond slot overflows.
 Hopefully this overflow buffer ends up small enough that it fits into cache
 To avoid having to dynamically allocate memory, we use a ring buffer and just keep advancing around it.

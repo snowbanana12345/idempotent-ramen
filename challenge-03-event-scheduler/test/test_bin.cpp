@@ -72,12 +72,15 @@ TEST(Cancel, Empty){
 TEST(Advance, One){
     EventScheduler scheduler;
     scheduler.schedule(9, 7);
+    static bool called = false;
     EventCallback cb = [](uint64_t event_id, int64_t scheduled_time, void* user_data) { 
         EXPECT_EQ(event_id, 9);
         EXPECT_EQ(scheduled_time, 7);
+        called = true;
     };
     EXPECT_EQ(scheduler.advance(6, cb, nullptr), 0);
     EXPECT_EQ(scheduler.advance(7, cb, nullptr), 1);
+    EXPECT_TRUE(called);
 }
 
 namespace adv_test::in_order{
