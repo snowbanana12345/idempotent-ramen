@@ -35,6 +35,8 @@ struct Operation {
     int64_t time_us;
 };
 
+
+
 // ---------------------------------------------------------------------------
 // Noop callback — just counts
 // ---------------------------------------------------------------------------
@@ -167,6 +169,77 @@ LatencyStats compute_stats(std::vector<uint64_t>& lat) {
 }
 
 // ---------------------------------------------------------------------------
+// aggregate latenncy measurement
+// ---------------------------------------------------------------------------
+struct AggStats{
+    LatencyStats schedule_stats;
+    LatencyStats cancel_stats;
+    LatencyStats advance_stats;
+    LatencyStats query_size_stats;
+    LatencyStats query_next_stats;
+    LatencyStats all_stats;
+
+    void print(){
+        std::printf("------- Latency (cycles) by operation -------- \n");
+        std::fprintf(stderr, "  Schedule: p50=%lu  p99=%lu  p999=%lu  max=%llu  avg=%.0f n=%lu\n",
+            schedule_stats.p50, schedule_stats.p99, schedule_stats.p999, schedule_stats.max, schedule_stats.avg, schedule_stats.count);
+        std::fprintf(stderr, "  Cancel:   p50=%lu  p99=%lu  p999=%lu  max=%llu  avg=%.0f n=%lu\n",
+            cancel_stats.p50, cancel_stats.p99, cancel_stats.p999, cancel_stats.max, cancel_stats.avg, cancel_stats.count);
+        std::fprintf(stderr, "  Advance:  p50=%lu  p99=%lu  p999=%lu  max=%llu  avg=%.0f n=%lu\n",
+            advance_stats.p50, advance_stats.p99, advance_stats.p999, advance_stats.max, advance_stats.avg, advance_stats.count);
+        std::fprintf(stderr, "  QuerySz:  p50=%lu  p99=%lu  p999=%lu  max=%llu  avg=%.0f n=%lu\n",
+            query_size_stats.p50, query_size_stats.p99, query_size_stats.p999, query_size_stats.max, query_size_stats.avg, query_size_stats.count);
+        std::fprintf(stderr, "  QueryNext:p50=%lu  p99=%lu  p999=%lu  max=%llu  avg=%.0f n=%lu\n",
+            query_next_stats.p50, query_next_stats.p99, query_next_stats.p999, query_next_stats.max, query_next_stats.avg, query_next_stats.count);
+        std::fprintf(stderr, "    All:    p50=%lu  p99=%lu  p999=%lu  max=%llu  avg=%.0f n=%lu\n",
+            all_stats.p50, all_stats.p99, all_stats.p999, all_stats.max, all_stats.avg, all_stats.count);
+        std::printf("------- END -------- \n");
+    }
+};
+
+class LatencyByOp{
+    private:
+        std::vector<uint64_t> schedule;
+        std::vector<uint64_t> cancel;
+        std::vector<uint64_t> advance;
+        std::vector<uint64_t> query_size;
+        std::vector<uint64_t> query_next;
+        std::vector<uint64_t> all;
+
+    public:
+        void add(Operation::Type type, uint64_t latency){
+            all.push_back(latency);
+            switch(type){
+                case Operation::SCHEDULE: schedule.push_back(latency); break;
+                case Operation::CANCEL: cancel.push_back(latency); break;
+                case Operation::ADVANCE: advance.push_back(latency); break;
+                case Operation::QUERY_SIZE: query_size.push_back(latency); break;
+                case Operation::QUERY_NEXT: query_next.push_back(latency); break;
+            }
+        }
+
+        void reserve(size_t n){
+            all.reserve(n);
+            schedule.reserve(n);
+            cancel.reserve(n);
+            advance.reserve(n);
+            query_size.reserve(n);
+            query_next.reserve(n);
+        }
+
+        AggStats compute(){
+            return {
+                compute_stats(schedule),
+                compute_stats(cancel),
+                compute_stats(advance),
+                compute_stats(query_size),
+                compute_stats(query_next),
+                compute_stats(all)
+            };
+        }
+};
+
+// ---------------------------------------------------------------------------
 // Execute one operation
 // ---------------------------------------------------------------------------
 
@@ -204,8 +277,8 @@ static hftu::RegisterBenchmark reg_solution(
     [](int iterations) -> uint64_t {
         WorkloadConfig cfg;
         const auto wl = generate_workload(cfg);
-        std::vector<uint64_t> all_latencies;
-        all_latencies.reserve(wl.timed.size() * static_cast<size_t>(iterations));
+        LatencyByOp latencies;
+        latencies.reserve(wl.timed.size() * static_cast<size_t>(iterations));
 
         for (int iter = 0; iter < iterations; ++iter) {
             hftu::EventScheduler sched;
@@ -221,16 +294,15 @@ static hftu::RegisterBenchmark reg_solution(
                 execute_op(sched, op, fire_count);
                 hftu::clobber();
                 uint64_t t1 = hftu::cycle_end();
-                all_latencies.push_back(t1 - t0);
+                latencies.add(op.type, t1 - t0);
             }
         }
 
-        auto stats = compute_stats(all_latencies);
-        std::fprintf(stderr, "  Latency (cycles): p50=%lu  p99=%lu  p999=%lu  max=%lu  avg=%.0f\n",
-                     stats.p50, stats.p99, stats.p999, stats.max, stats.avg);
+        auto agg_stats = latencies.compute();
+        agg_stats.print();  
 
         // Return total so cycles_per_op = p99
-        return stats.p99 * static_cast<uint64_t>(iterations) * wl.timed.size();
+        return agg_stats.all_stats.p99 * static_cast<uint64_t>(iterations) * wl.timed.size();
     }
 );
 

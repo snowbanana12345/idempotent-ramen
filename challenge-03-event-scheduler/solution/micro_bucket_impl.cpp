@@ -1,6 +1,7 @@
 #include "solution.h"
 #include <queue>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace hftu{
@@ -11,7 +12,6 @@ namespace hftu{
     class Impl{
         public:
             void schedule(uint64_t event_id, int64_t time_us){
-                
                 if(time_us - m_curr_time_us < MICRO_SLOTS){
                     insert_into_slots(event_id, time_us);
                 } else if(time_us - m_curr_time_us < FAR_THRESHOLD){
@@ -20,19 +20,19 @@ namespace hftu{
                     m_far_pq.push({event_id, time_us});
                 }
 
-                m_events.insert(event_id);
+                m_events[event_id] = time_us;
             }
 
             bool cancel(uint64_t event_id){
                 uint64_t deleted = m_events.erase(event_id) > 0;
 
-                while (!m_overflow_buffer.empty() && m_events.find(m_overflow_buffer.top().event_id) == m_events.end()) {
+                while (!m_overflow_buffer.empty() && !is_event_valid(m_overflow_buffer.top())) {
                     m_overflow_buffer.pop();
                 }
-                while (!m_mid_pq.empty() && m_events.find(m_mid_pq.top().event_id) == m_events.end()) {
+                while (!m_mid_pq.empty() && !is_event_valid(m_mid_pq.top())) {
                     m_mid_pq.pop();
                 }
-                while (!m_far_pq.empty() && m_events.find(m_far_pq.top().event_id) == m_events.end()) {
+                while (!m_far_pq.empty() && !is_event_valid(m_far_pq.top())) {
                     m_far_pq.pop();
                 }
 
@@ -48,19 +48,31 @@ namespace hftu{
 
                     for (uint32_t j = 0; j < m_inner_ptrs[slot_index]; ++j) {
                         uint64_t event_id = m_slots[slot_index][j];
-                        if (m_events.find(event_id) != m_events.end()) {
+                        if (m_events.find(event_id) != m_events.end() && m_events[event_id] == slot_time_us) {
                             cb(event_id, slot_time_us, user_data);
                             fired_count++;
                             m_events.erase(event_id);
                         }
                     }
-                    m_inner_ptrs[slot_index] = 0; // Reset the inner pointer for this slot
+
+                    while (!m_overflow_buffer.empty() && m_overflow_buffer.top().time_us <= new_time_us) {
+                        Event event = m_overflow_buffer.top();
+                        m_overflow_buffer.pop();
+                        if (is_event_valid(event)) {
+                            cb(event.event_id, event.time_us, user_data);
+                            fired_count++;
+                            m_events.erase(event.event_id);
+                        }
+                    }
+
+                    m_inner_ptrs[slot_index] = 0; 
                 }
 
+                // ---- correctness for the case of new_time_us jumping milliseconds
                 while (!m_mid_pq.empty() && m_mid_pq.top().time_us <= new_time_us) {
                     Event e = m_mid_pq.top();
                     m_mid_pq.pop();
-                    if (m_events.find(e.event_id) != m_events.end()) {
+                    if (m_events.find(e.event_id) != m_events.end() && m_events[e.event_id] == e.time_us) {
                         cb(e.event_id, e.time_us, user_data);
                         fired_count++;
                         m_events.erase(e.event_id);
@@ -70,11 +82,24 @@ namespace hftu{
                 while (!m_far_pq.empty() && m_far_pq.top().time_us <= new_time_us) {
                     Event e = m_far_pq.top();
                     m_far_pq.pop();
-                    if (m_events.find(e.event_id) != m_events.end()) {
+                    if (m_events.find(e.event_id) != m_events.end() && m_events[e.event_id] == e.time_us) {
                         cb(e.event_id, e.time_us, user_data);
                         fired_count++;
                         m_events.erase(e.event_id);
                     }
+                }
+
+                // ---- now we pour the mid events into near, and far into mid ----
+                while(!m_mid_pq.empty() && m_mid_pq.top().time_us - m_curr_time_us < MICRO_SLOTS){
+                    auto event = m_mid_pq.top();
+                    m_mid_pq.pop();
+                    if (is_event_valid(event)) insert_into_slots(event.event_id, event.time_us);
+                }
+
+                while(!m_far_pq.empty() && m_far_pq.top().time_us - m_curr_time_us < FAR_THRESHOLD){
+                    auto event = m_far_pq.top();
+                    m_far_pq.pop();
+                    if (is_event_valid(event)) m_mid_pq.push(event);
                 }
 
                 return fired_count;
@@ -83,6 +108,7 @@ namespace hftu{
             uint64_t size() const{
                 return m_events.size();
             }
+            
             int64_t next_event_time() const{
                 if (!m_overflow_buffer.empty()) {
                     return m_overflow_buffer.top().time_us;
@@ -101,7 +127,7 @@ namespace hftu{
                 }
                 return INT64_MAX; // No events scheduled
             }
-            
+
         private:
             struct Event{
                 uint64_t event_id;
@@ -120,7 +146,7 @@ namespace hftu{
 
             int64_t m_curr_time_us;
 
-            std::unordered_set<uint64_t> m_events;
+            std::unordered_map<uint64_t, int64_t> m_events;
             std::priority_queue<Event, std::vector<Event>, EventComparator> m_overflow_buffer;
             std::priority_queue<Event, std::vector<Event>, EventComparator> m_mid_pq;
             std::priority_queue<Event, std::vector<Event>, EventComparator> m_far_pq;
@@ -136,6 +162,11 @@ namespace hftu{
                     m_slots[slot_index][inner_index] = event_id;
                     m_inner_ptrs[slot_index]++;
                 }
+            }
+
+            inline bool is_event_valid(Event event) const {
+                auto it = m_events.find(event.event_id);
+                return it != m_events.end() && it->second == event.time_us;
             }
     };
 }

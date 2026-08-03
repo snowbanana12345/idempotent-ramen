@@ -1,7 +1,7 @@
 #include "solution.h"
 #include <queue>
 #include <vector>
-#include <unordered_set>
+#include <unordered_map>
 
 namespace hftu{
     class Impl{
@@ -12,13 +12,20 @@ namespace hftu{
 
             void schedule(uint64_t event_id, int64_t time_us){
                 m_pq.push({event_id, time_us});
-                m_events.insert(event_id);
+                m_events[event_id] = time_us;
+
+                 while (!m_pq.empty() && (m_events.find(m_pq.top().event_id) == m_events.end() || m_events[m_pq.top().event_id] != m_pq.top().time_us)
+                ) {
+                    m_pq.pop(); // Remove invalid events from the priority queue
+                }
             }
 
             bool cancel(uint64_t event_id){
                 uint64_t deleted = m_events.erase(event_id) > 0;
-                while (!m_pq.empty() && m_events.find(m_pq.top().event_id) == m_events.end()) {
-                    m_pq.pop();
+                while (!m_pq.empty() && 
+                (m_events.find(m_pq.top().event_id) == m_events.end() || m_events[m_pq.top().event_id] != m_pq.top().time_us)
+                ) {
+                    m_pq.pop(); // Remove invalid events from the priority queue
                 }
                 return deleted;
             }
@@ -29,9 +36,10 @@ namespace hftu{
                     auto event = m_pq.top();
                     if(event.time_us > new_time_us) break;
                     m_pq.pop();
-                    if(m_events.erase(event.event_id) > 0){
+                    if(m_events.find(event.event_id) != m_events.end() && m_events[event.event_id] == event.time_us){
                         cb(event.event_id, event.time_us, user_data);
                         ++fired;
+                        m_events.erase(event.event_id);
                     }
                 }
                 return fired;
@@ -59,7 +67,7 @@ namespace hftu{
             };
 
             std::priority_queue<Event, std::vector<Event>, EventComparator> m_pq;
-            std::unordered_set<uint64_t> m_events;
+            std::unordered_map<uint64_t, int64_t> m_events;
     };
 }
 

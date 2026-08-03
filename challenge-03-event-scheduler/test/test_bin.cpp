@@ -25,6 +25,25 @@ TEST(Schedule, One){
     EXPECT_EQ(scheduler.next_event_time(), 5);
 }
 
+TEST(Schedule, Multiple){
+    EventScheduler scheduler;
+    scheduler.schedule(7, 5);
+    scheduler.schedule(11, 9);
+    scheduler.schedule(4, 6);
+    scheduler.schedule(10, 11);
+    EXPECT_EQ(scheduler.size(), 4);
+    EXPECT_EQ(scheduler.next_event_time(), 5);
+}
+
+TEST(Schedule, Reschedule){
+    EventScheduler scheduler;
+    scheduler.schedule(7, 5);
+    EXPECT_EQ(scheduler.next_event_time(), 5);
+    scheduler.schedule(7, 6);
+    EXPECT_EQ(scheduler.size(), 1);
+    EXPECT_EQ(scheduler.next_event_time(), 6);
+}
+
 TEST(Query, Empty){
     EventScheduler scheduler;
     EXPECT_EQ(scheduler.size(), 0);
