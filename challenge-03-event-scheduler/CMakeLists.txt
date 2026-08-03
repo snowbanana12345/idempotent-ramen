@@ -3,7 +3,8 @@ project(challenge-03-event-scheduler LANGUAGES CXX)
 include(FetchContent)
 
 # add_executable(benchmark benchmark.cpp solution/solution.cpp)
-add_executable(benchmark benchmark.cpp solution/heap_impl.cpp)
+# add_executable(benchmark benchmark.cpp solution/heap_impl.cpp)
+add_executable(benchmark benchmark.cpp solution/tier_heap_impl.cpp)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
     include(${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)

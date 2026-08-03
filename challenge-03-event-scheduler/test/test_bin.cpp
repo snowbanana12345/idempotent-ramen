@@ -86,3 +86,28 @@ TEST(Advance, InOrder){
 
     EXPECT_EQ(scheduler.advance(15, cb, nullptr), 4);
 }
+
+namespace adv_test::far{
+    static std::array<uint64_t, 4> event_ids = {7, 8, 11};
+    static std::array<uint64_t, 4> times = {5, 1001, 1'000'300};
+    static int g_ptr = 0;
+
+    static void callbackImpl(uint64_t event_id, int64_t scheduled_time, void* user_data) {
+        EXPECT_EQ(event_ids[g_ptr], event_id);
+        EXPECT_EQ(times[g_ptr], scheduled_time);
+        g_ptr++;
+    }
+}
+
+TEST(Advance, Far){
+    EventScheduler scheduler;
+    using namespace adv_test::far; 
+    
+    scheduler.schedule(event_ids[0], times[0]);
+    scheduler.schedule(event_ids[1], times[1]);
+    scheduler.schedule(event_ids[2], times[2]);
+
+    EventCallback cb = callbackImpl;
+
+    EXPECT_EQ(scheduler.advance(2'000'000, cb, nullptr), 3);
+}
