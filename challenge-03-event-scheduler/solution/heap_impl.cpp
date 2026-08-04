@@ -14,17 +14,14 @@ namespace hftu{
                 m_pq.push({event_id, time_us});
                 m_events[event_id] = time_us;
 
-                 while (!m_pq.empty() && (m_events.find(m_pq.top().event_id) == m_events.end() || m_events[m_pq.top().event_id] != m_pq.top().time_us)
-                ) {
+                 while (!m_pq.empty() && !is_event_valid(m_pq.top())) {
                     m_pq.pop(); // Remove invalid events from the priority queue
                 }
             }
 
             bool cancel(uint64_t event_id){
                 uint64_t deleted = m_events.erase(event_id) > 0;
-                while (!m_pq.empty() && 
-                (m_events.find(m_pq.top().event_id) == m_events.end() || m_events[m_pq.top().event_id] != m_pq.top().time_us)
-                ) {
+                while (!m_pq.empty() && !is_event_valid(m_pq.top())) {
                     m_pq.pop(); // Remove invalid events from the priority queue
                 }
                 return deleted;
@@ -36,7 +33,7 @@ namespace hftu{
                     auto event = m_pq.top();
                     if(event.time_us > new_time_us) break;
                     m_pq.pop();
-                    if(m_events.find(event.event_id) != m_events.end() && m_events[event.event_id] == event.time_us){
+                    if(is_event_valid(event)){
                         cb(event.event_id, event.time_us, user_data);
                         ++fired;
                         m_events.erase(event.event_id);
@@ -68,6 +65,11 @@ namespace hftu{
 
             std::priority_queue<Event, std::vector<Event>, EventComparator> m_pq;
             std::unordered_map<uint64_t, int64_t> m_events;
+
+            inline bool is_event_valid(Event event) const {
+                auto it = m_events.find(event.event_id);
+                return it != m_events.end() && it->second == event.time_us;
+            }
     };
 }
 
