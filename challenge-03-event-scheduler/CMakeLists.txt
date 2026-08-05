@@ -5,7 +5,7 @@ include(FetchContent)
 # add_executable(benchmark benchmark.cpp solution/solution.cpp)
 # add_executable(benchmark benchmark.cpp solution/heap_impl.cpp)
 # add_executable(benchmark benchmark.cpp solution/micro_bucket_impl.cpp)
-# add_executable(benchmark benchmark.cpp solution/tiered_heap_impl.cpp)
+add_executable(benchmark benchmark.cpp solution/tiered_heap_impl.cpp)
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
     include(${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)

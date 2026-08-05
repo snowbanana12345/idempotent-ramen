@@ -83,7 +83,7 @@ There's some improvement, but it looks like having to loop through each slot is 
 I'm going to say this microsecond bucket idea is ramen eggs.
 
 ## slotted tiered std::priority_queue
-Lets take the tiered std::priority_queue idea. It appeared to have reduced the p99 just a little bit.
+Lets take the tiered std::priority_queue idea that appeared to have reduced the p99 just a little bit.
 We put the near events into slots of priority queues
 
 
