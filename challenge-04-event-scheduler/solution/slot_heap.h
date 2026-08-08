@@ -1,14 +1,14 @@
 #include <queue>
+#include <functional>
 
 namespace hftu{
-    template <typename T, typename Derived, uint32_t SLOTS, uint64_t INTERVAL>
-    class SlotHeaps{
-        public:
-            enum Op{
-                FIRE,
-                MOVE
-            };
+    
 
+    template <typename T, uint32_t SLOTS, int64_t INTERVAL>
+    class SlotHeaps{
+        using CallBack = std::function<void(T, int64_t)>;
+
+        public:
             SlotHeaps(){
                 m_curr_time = 0;
                 m_slot_ptr = 0;
@@ -18,16 +18,14 @@ namespace hftu{
                 }
             }
 
-            Derived* me() { return static_cast<Derived*>(this); }
-
-            uint64_t start_time(){
+            int64_t start_time() const{
                 return m_slots[m_slot_ptr].start_time;
             }
-            uint64_t end_time(){
+            int64_t end_time() const{
                 return start_time() + SLOTS * INTERVAL;
             }
 
-            void insert(T value, uint64_t time_ns){
+            void insert(T value, int64_t time_ns){
                 for (int i = 0; i < SLOTS; i++){
                     Slot& slot = m_slots[(m_slot_ptr + i) % SLOTS];
                     if (slot.start_time <= time_ns && time_ns < slot.end_time){
@@ -36,12 +34,12 @@ namespace hftu{
                 }
             }
 
-            int64_t first_event_time(){
+            int64_t first_event_time() const{
                 if (m_slots[m_slot_ptr].pq.empty()) return INT64_MAX;
                 return m_slots[m_slot_ptr].pq.top().t;
             }
 
-            uint32_t size(){
+            uint32_t size() const{
                 uint32_t size_ = 0;
 
                 for (uint32_t i = 0; i < SLOTS; i++){
@@ -51,23 +49,14 @@ namespace hftu{
                 return size_;
             }
 
-            uint32_t advance(uint64_t time_ns){
-                return advance(time_ns, Op::FIRE);
-            }
-
-            uint32_t advance(uint64_t time_ns, Op op){
+            uint32_t advance(int64_t time_ns, CallBack call_back){
                 uint32_t fired = 0;
 
                 while (true) {
                     auto &pq = m_slots[m_slot_ptr].pq;
                     while (!pq.empty() && pq.top().t <= time_ns){
                         Timed t = pq.top(); pq.pop();
-
-                        switch (op){
-                            case Op::FIRE : me()->fire(t.value, t.t);
-                            case Op::MOVE : me()->move(t.value, t.t);
-                        }
-                        
+                        call_back(t.value, t.t);
                         ++fired;
                     }
                     
@@ -84,7 +73,7 @@ namespace hftu{
         private:
             struct Timed{
                 T value;
-                uint64_t t;
+                int64_t t;
             };    
 
             struct Compare {
@@ -94,12 +83,12 @@ namespace hftu{
             };
 
             struct Slot{
-                uint64_t start_time;
-                uint64_t end_time;
+                int64_t start_time;
+                int64_t end_time;
                 std::priority_queue<Timed, std::vector<Timed>, Compare> pq;
             };
 
-            uint64_t m_curr_time;
+            int64_t m_curr_time;
             uint32_t m_slot_ptr;
             Slot m_slots[SLOTS];
     };
