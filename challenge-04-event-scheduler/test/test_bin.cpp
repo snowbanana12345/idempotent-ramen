@@ -43,3 +43,43 @@ TEST(Schedule, InOrder){
     EXPECT_EQ(sch.records[1].e, &event3);
     EXPECT_EQ(sch.records[2].e, &event1);
 }
+
+TEST(Schedule, NearThresholdFire){
+    UTSchel sch;
+    Event event1;
+    Event event2;
+    sch.schedule(&event1, 1);
+    sch.schedule(&event2, 1007);
+    EXPECT_EQ(sch.advance(1007), 2);
+}
+
+TEST(Schedule, NearThresholdMove){
+    UTSchel sch;
+    Event event1;
+    Event event2;
+    sch.schedule(&event1, 1);
+    sch.schedule(&event2, 1007);
+    EXPECT_EQ(sch.advance(1005), 1);
+    EXPECT_EQ(sch.advance(1007), 1);
+}
+
+TEST(Schedule, FarThresholdFire){
+    UTSchel sch;
+    Event event1;
+    Event event2;
+    sch.schedule(&event1, 2000);
+    sch.schedule(&event2, 7'000'000);
+    EXPECT_EQ(sch.advance(7'000'000), 2);
+}
+
+TEST(Schedule, FarThresholdMove){
+    UTSchel sch;
+    Event event1;
+    Event event2;
+    Event event3;
+    sch.schedule(&event1, 2000);
+    sch.schedule(&event2, 1'001'000);
+    sch.schedule(&event3, 1'001'001);
+    EXPECT_EQ(sch.advance(1'000'999), 1);
+    EXPECT_EQ(sch.advance(1'001'000), 1);
+}
