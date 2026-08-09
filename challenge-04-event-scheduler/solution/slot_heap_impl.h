@@ -5,17 +5,18 @@
 namespace hftu{
 struct Event {};
 
-constexpr uint32_t NEAR_SLOTS = 10;
-constexpr int64_t NEAR_INTERVAL = 100; // 0.1 us
-constexpr int64_t NEAR_THRESHOLD = NEAR_SLOTS * NEAR_INTERVAL;
+constexpr uint32_t NEAR_SLOTS = 16;
+constexpr int64_t NEAR_INTERVAL = 64; // ~ 1us
 
-constexpr uint32_t MID_SLOTS = 10;
-constexpr int64_t MID_INTERVAL = 100'000'000; // 100ms
-constexpr int64_t MID_THRESHOLD = MID_SLOTS * MID_INTERVAL; // needs to be eq to 1 second
-static_assert(MID_THRESHOLD == 1000'000'000, "mid interval must be 1 million ns");
+constexpr int64_t MICRO_SECOND = 1024;
+constexpr int64_t MILLI_SECOND = 1024 * 1024;
+constexpr int64_t SECOND = 1024 * 1024 * 1024;
 
-constexpr uint32_t FAR_SLOTS = 60;
-constexpr int64_t FAR_INTERVAL = 1'000'000'000; // 60 second
+constexpr uint32_t MID_SLOTS = 16;
+constexpr int64_t MID_INTERVAL = 64 * MILLI_SECOND; // 100ms
+
+constexpr uint32_t FAR_SLOTS = 64;
+constexpr int64_t FAR_INTERVAL = SECOND; // 60 second
 
 using CallBack = std::function<void(Event*, int64_t)>;
 
