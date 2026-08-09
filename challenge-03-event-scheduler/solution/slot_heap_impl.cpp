@@ -25,8 +25,6 @@ namespace hftu {
             }
 
             void schedule(uint64_t event_id, int64_t time_us){
-                // the reason we have to clean the top on update is because 
-                // get first event is declared const, we can't just lazily clean on read
                 m_time_map[event_id] = time_us;
 
                 m_near_heap.clean(m_predicate);

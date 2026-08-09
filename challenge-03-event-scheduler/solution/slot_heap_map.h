@@ -1,10 +1,12 @@
 #include <queue>
+#include <unordered_map>
 #include <functional>
 
 namespace hftu{
     template <typename T, uint32_t SLOTS, int64_t INTERVAL>
-    class SlotHeaps{
+    class SlotMapHeaps{
         using CallBack = std::function<void(T, int64_t)>;
+        using Predicate = std::function<bool(T, int64_t)>;
 
         public:
             SlotHeaps(){
@@ -27,6 +29,15 @@ namespace hftu{
                 uint32_t offset = (time_ns - start_time()) / INTERVAL;
                 uint32_t ind = (m_slot_ptr + offset) % SLOTS;
                 m_slots[ind].pq.push({value, time_ns});
+            }
+
+            bool remove(T value){
+                uint32_t removed = 0;
+                for (uint32_t i = 0; i < SLOTS; i++){
+                    removed += m_slots[i].time_map.erase(value);
+                }
+
+                return removed > 0;
             }
 
             int64_t first_event_time() const{
@@ -56,7 +67,6 @@ namespace hftu{
                 return fire_some(time_ns, call_back);
             }
 
-
         private:
             struct Timed{
                 T value;
@@ -73,6 +83,7 @@ namespace hftu{
                 int64_t start_time;
                 int64_t end_time;
                 std::priority_queue<Timed, std::vector<Timed>, Compare> pq;
+                std::unordered_map<T, uint64_t> time_map;
             };
 
             int64_t m_curr_time;
@@ -83,11 +94,14 @@ namespace hftu{
                 uint32_t fired = this->size();
                 for (int i = 0; i < SLOTS; i++) {
                     auto &pq = m_slots[m_slot_ptr].pq;
+                    auto &mp = m_slots[m_slot_ptr].time_map;
                     while (!pq.empty()){
                         Timed t = pq.top(); pq.pop();
-                        call_back(t.value, t.t);
+                        if(mp[t.value] == t.t) call_back(t.value, t.t);
                     }
+                    
                     m_slot_ptr = (m_slot_ptr + 1) % SLOTS;
+                    mp.clear();
                 }
 
                 m_slot_ptr = 0;
@@ -105,14 +119,31 @@ namespace hftu{
                 uint32_t fired = 0;
                 for (int i = 0; i < SLOTS; i++) {
                     auto &pq = m_slots[m_slot_ptr].pq;
-                    while (!pq.empty() && pq.top().t <= time_ns){
-                        Timed t = pq.top(); pq.pop();
-                        call_back(t.value, t.t);
-                        ++fired;
+                    auto &mp = m_slots[m_slot_ptr].time_map;
+                    if (time_ns < m_slots[m_slot_ptr].end_time){
+                        // process some
+                        while (!pq.empty() && pq.top().t <= time_ns){
+                            Timed t = pq.top(); pq.pop();
+                            auto it = mp.find(t.value);
+                            if (it != mp.end() && it->second == t.t){
+                                call_back(t.value, t.t);
+                                mp.erase(it);
+                            }
+                            
+                            ++fired;
+                        }
+                        break;
+                    }
+                    else { // process the entire block
+                        while (!pq.empty()){
+                            Timed t = pq.top(); pq.pop();
+                            if(mp[t.value] == t.t) call_back(t.value, t.t);
+                        }
+                        
+                        m_slot_ptr = (m_slot_ptr + 1) % SLOTS;
+                        mp.clear();
                     }
                     
-                    if (time_ns < m_slots[m_slot_ptr].end_time) break;
-                
                     m_slots[m_slot_ptr].start_time += SLOTS * INTERVAL;
                     m_slots[m_slot_ptr].end_time += SLOTS * INTERVAL;
                     m_slot_ptr = (m_slot_ptr + 1) % SLOTS;

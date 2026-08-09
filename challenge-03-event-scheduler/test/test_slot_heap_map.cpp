@@ -1,11 +1,11 @@
-#include "slot_heap.h"
+#include "slot_heap_map.h"
 #include <gmock/gmock.h>
 #include <vector>
 
 
 using namespace hftu;
 
-using UTHeap = SlotHeaps<int, 2, 10> ;
+using UTHeap = SlotMapHeaps<int, 2, 10> ;
 using Cb = void(*)(int, int64_t);
 
 TEST(Slotted, Empty){
