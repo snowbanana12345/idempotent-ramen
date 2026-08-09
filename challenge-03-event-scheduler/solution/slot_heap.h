@@ -2,8 +2,6 @@
 #include <functional>
 
 namespace hftu{
-    
-
     template <typename T, uint32_t SLOTS, int64_t INTERVAL>
     class SlotHeaps{
         using CallBack = std::function<void(T, int64_t)>;

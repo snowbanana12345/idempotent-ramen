@@ -2,8 +2,6 @@
 #include <functional>
 
 namespace hftu{
-    
-
     template <typename T, uint32_t SLOTS, int64_t INTERVAL>
     class SlotHeaps{
         using CallBack = std::function<void(T, int64_t)>;
@@ -84,9 +82,6 @@ namespace hftu{
                         Timed t = pq.top(); pq.pop();
                         call_back(t.value, t.t);
                     }
-                    
-                    m_slots[m_slot_ptr].start_time += SLOTS * INTERVAL;
-                    m_slots[m_slot_ptr].end_time += SLOTS * INTERVAL;
                     m_slot_ptr = (m_slot_ptr + 1) % SLOTS;
                 }
 

@@ -29,17 +29,18 @@ namespace hftu {
                 // get first event is declared const, we can't just lazily clean on read
                 m_time_map[event_id] = time_us;
 
+                m_near_heap.clean(m_predicate);
+                m_mid_heap.clean(m_predicate);
+                m_far_heap.clean(m_predicate);
+
                 if (time_us < m_near_heap.end_time()){
                     m_near_heap.insert(event_id, time_us);
-                    m_near_heap.clean(m_predicate);
                 }
                 else if (time_us < m_mid_heap.end_time()){
-                    m_mid_heap.insert(event_id, time_us);
-                    m_mid_heap.clean(m_predicate);
+                    m_mid_heap.insert(event_id, time_us);   
                 }
                 else {
-                    m_far_heap.insert(event_id, time_us);
-                    m_far_heap.clean(m_predicate);
+                    m_far_heap.insert(event_id, time_us);   
                 }
             }
 
@@ -55,7 +56,11 @@ namespace hftu {
 
             uint32_t advance(int64_t new_time_us, EventCallback cb, void* user_data){
                 std::function<void(uint64_t, int64_t)> fire_call_back = [this, &cb, user_data](uint64_t event_id, int64_t time_us){
-                    cb(event_id, time_us, user_data);
+                    auto it = m_time_map.find(event_id);
+                    if (it != m_time_map.end() && it->second == time_us){
+                        cb(event_id, time_us, user_data);
+                        m_time_map.erase(it);
+                    }
                 };
 
                 uint32_t fired = 0;
