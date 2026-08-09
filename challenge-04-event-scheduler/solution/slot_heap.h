@@ -50,24 +50,10 @@ namespace hftu{
             }
 
             uint32_t advance(int64_t time_ns, CallBack call_back){
-                uint32_t fired = 0;
-
-                while (true) {
-                    auto &pq = m_slots[m_slot_ptr].pq;
-                    while (!pq.empty() && pq.top().t <= time_ns){
-                        Timed t = pq.top(); pq.pop();
-                        call_back(t.value, t.t);
-                        ++fired;
-                    }
-                    
-                    if (time_ns < m_slots[m_slot_ptr].end_time) break;
-                
-                    m_slots[m_slot_ptr].start_time += SLOTS * INTERVAL;
-                    m_slots[m_slot_ptr].end_time += SLOTS * INTERVAL;
-                    m_slot_ptr = (m_slot_ptr + 1) % SLOTS;
+                if (time_ns >= this->end_time()){
+                    return fire_all(time_ns, call_back);
                 }
-
-                return fired;
+                return fire_some(time_ns, call_back);
             }
 
         private:
@@ -91,5 +77,50 @@ namespace hftu{
             int64_t m_curr_time;
             uint32_t m_slot_ptr;
             Slot m_slots[SLOTS];
+
+            uint32_t fire_all(int64_t time_ns, CallBack call_back){
+                uint32_t fired = this->size();
+                for (int i = 0; i < SLOTS; i++) {
+                    auto &pq = m_slots[m_slot_ptr].pq;
+                    while (!pq.empty()){
+                        Timed t = pq.top(); pq.pop();
+                        call_back(t.value, t.t);
+                    }
+                    
+                    m_slots[m_slot_ptr].start_time += SLOTS * INTERVAL;
+                    m_slots[m_slot_ptr].end_time += SLOTS * INTERVAL;
+                    m_slot_ptr = (m_slot_ptr + 1) % SLOTS;
+                }
+
+                m_slot_ptr = 0;
+                int64_t new_start_time = (time_ns / INTERVAL) * INTERVAL;
+                
+                for (int i = 0; i < SLOTS; i++){
+                    m_slots[i].start_time = new_start_time + i * INTERVAL;
+                    m_slots[i].end_time = new_start_time + (i + 1) * INTERVAL;
+                }
+
+                return fired;
+            }
+
+            uint32_t fire_some(int64_t time_ns, CallBack call_back){
+                uint32_t fired = 0;
+                for (int i = 0; i < SLOTS; i++) {
+                    auto &pq = m_slots[m_slot_ptr].pq;
+                    while (!pq.empty() && pq.top().t <= time_ns){
+                        Timed t = pq.top(); pq.pop();
+                        call_back(t.value, t.t);
+                        ++fired;
+                    }
+                    
+                    if (time_ns < m_slots[m_slot_ptr].end_time) break;
+                
+                    m_slots[m_slot_ptr].start_time += SLOTS * INTERVAL;
+                    m_slots[m_slot_ptr].end_time += SLOTS * INTERVAL;
+                    m_slot_ptr = (m_slot_ptr + 1) % SLOTS;
+                }
+
+                return fired;
+            }
     };
 }

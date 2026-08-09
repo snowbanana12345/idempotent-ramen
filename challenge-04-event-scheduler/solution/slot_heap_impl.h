@@ -49,16 +49,21 @@ public:
         fired += m_mid_heap.advance(new_time_ns, event_cb);
         fired += m_far_heap.advance(new_time_ns, event_cb);
 
-        CallBack mid_move_cb = [this](Event* event, int64_t t) { 
-            m_near_heap.insert(event, t);
-        };
-        m_mid_heap.advance(new_time_ns + NEAR_THRESHOLD, mid_move_cb);
+        if (m_mid_heap.start_time() < m_near_heap.end_time()){
+            // move mid_heap interval to start_heap_interval
+            CallBack mid_move_cb = [this](Event* event, int64_t t) { 
+                m_near_heap.insert(event, t);
+            };
+            m_mid_heap.advance(m_near_heap.end_time(), mid_move_cb);
+        }
 
-        CallBack far_move_cb = [this](Event* event, int64_t t) { 
-            m_mid_heap.insert(event, t);
-        };
-
-        m_far_heap.advance(new_time_ns + NEAR_THRESHOLD + MID_THRESHOLD, far_move_cb);
+        if (m_far_heap.start_time() < m_mid_heap.end_time()){
+            // move far_heap_interval into mid_heap_interval
+            CallBack far_move_cb = [this](Event* event, int64_t t) { 
+                m_mid_heap.insert(event, t);
+            };
+            m_far_heap.advance(m_mid_heap.end_time(), far_move_cb);
+        }
 
         m_curr_time = new_time_ns;
         return fired;

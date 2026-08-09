@@ -75,6 +75,22 @@ TEST(Slotted, FullRingRotation){
     EXPECT_EQ(h.end_time(), 50);
 }
 
+TEST(Slotted, FullRingRotationCorner1){
+    UTHeap h;
+    Cb call_back = [](int id, int64_t t) { };
+    h.advance(39, call_back);
+    EXPECT_EQ(h.start_time(), 30);
+    EXPECT_EQ(h.end_time(), 50);
+}
+
+TEST(Slotted, FullRingRotationCorner2){
+    UTHeap h;
+    Cb call_back = [](int id, int64_t t) { };
+    h.advance(40, call_back);
+    EXPECT_EQ(h.start_time(), 40);
+    EXPECT_EQ(h.end_time(), 60);
+}
+
 TEST(Slotted, SortedOrder){
     UTHeap h;
     static std::vector<int> times;
