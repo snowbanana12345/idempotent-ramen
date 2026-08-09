@@ -26,12 +26,9 @@ namespace hftu{
             }
 
             void insert(T value, int64_t time_ns){
-                for (int i = 0; i < SLOTS; i++){
-                    Slot& slot = m_slots[(m_slot_ptr + i) % SLOTS];
-                    if (slot.start_time <= time_ns && time_ns < slot.end_time){
-                        slot.pq.push({value, time_ns}); break;
-                    }
-                }
+                uint32_t offset = (time_ns - start_time()) / INTERVAL;
+                uint32_t ind = (m_slot_ptr + offset) % SLOTS;
+                m_slots[ind].pq.push({value, time_ns});
             }
 
             int64_t first_event_time() const{

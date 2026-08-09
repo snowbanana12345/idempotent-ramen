@@ -10,11 +10,12 @@ constexpr int64_t NEAR_INTERVAL = 100; // 0.1 us
 constexpr int64_t NEAR_THRESHOLD = NEAR_SLOTS * NEAR_INTERVAL;
 
 constexpr uint32_t MID_SLOTS = 10;
-constexpr int64_t MID_INTERVAL = 1000'000'0; // 10ms
-constexpr int64_t MID_THRESHOLD = MID_SLOTS * MID_INTERVAL;
+constexpr int64_t MID_INTERVAL = 100'000'000; // 100ms
+constexpr int64_t MID_THRESHOLD = MID_SLOTS * MID_INTERVAL; // needs to be eq to 1 second
+static_assert(MID_THRESHOLD == 1000'000'000, "mid interval must be 1 million ns");
 
-constexpr uint32_t FAR_SLOTS = 10;
-constexpr int64_t FAR_INTERVAL = 6'000'000'000; // 6 second
+constexpr uint32_t FAR_SLOTS = 60;
+constexpr int64_t FAR_INTERVAL = 1'000'000'000; // 60 second
 
 using CallBack = std::function<void(Event*, int64_t)>;
 
@@ -28,10 +29,10 @@ public:
     Derived* me() { return static_cast<Derived*>(this); }
 
     void schedule(Event* event, int64_t time_ns) {
-        if (time_ns < m_curr_time + NEAR_THRESHOLD){
+        if (time_ns < m_near_heap.end_time()){
             m_near_heap.insert(event, time_ns);
         }
-        else if (time_ns < m_curr_time + NEAR_THRESHOLD + MID_THRESHOLD){
+        else if (time_ns < m_mid_heap.end_time()){
             m_mid_heap.insert(event, time_ns);
         }
         else {
