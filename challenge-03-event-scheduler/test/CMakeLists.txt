@@ -1,7 +1,7 @@
 # add_executable(test_bin "${CMAKE_SOURCE_DIR}/solution/solution.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
 # add_executable(test_bin "${CMAKE_SOURCE_DIR}/solution/heap_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
 # add_executable(test_bin "${CMAKE_SOURCE_DIR}/solution/micro_bucket_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
-add_executable(test_bin "${CMAKE_SOURCE_DIR}/solution/tiered_heap_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
+add_executable(test_bin "${CMAKE_SOURCE_DIR}/solution/slot_heap_impl.cpp" "${CMAKE_SOURCE_DIR}/test/test_bin.cpp")
 
 include(GoogleTest)
 

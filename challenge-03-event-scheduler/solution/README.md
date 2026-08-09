@@ -14,6 +14,7 @@ We have a sorted set problem, we can try to optimize it
   QuerySz:  p50=0  p99=125  p999=375  max=3333  avg=9 n=30311
   QueryNext:p50=0  p99=125  p999=250  max=792  avg=11 n=19913
     All:    p50=42  p99=708  p999=1250  max=25654034  avg=317 n=200000
+"cycles_per_op": 1334.00
 
 The bulk of the p99 latency comes from the Schedule and Advance methods.
 Especially the advance method which could potentially trigger 
@@ -25,13 +26,13 @@ A hashmap as a source of truth for actual events.
 Events popped out of the priority_queue might be invalid so need to check against the 
 
 ------- Latency (cycles) by operation -------- 
-  Schedule: p50=42  p99=167  p999=292  max=10333  avg=38 n=69761
-  Cancel:   p50=0  p99=125  p999=209  max=3542  avg=16 n=39915
-  Advance:  p50=208  p99=667  p999=155796  max=34112569  avg=1449 n=40100
-  QuerySz:  p50=0  p99=42  p999=125  max=917  avg=7 n=30311
-  QueryNext:p50=0  p99=42  p999=125  max=834  avg=9 n=19913
-    All:    p50=41  p99=500  p999=833  max=34112569  avg=309 n=200000
-
+Schedule: p50=42  p99=167  p999=292  max=10333  avg=38 n=69761
+Cancel:   p50=0  p99=125  p999=209  max=3542  avg=16 n=39915
+Advance:  p50=208  p99=667  p999=155796  max=34112569  avg=1449 n=40100
+QuerySz:  p50=0  p99=42  p999=125  max=917  avg=7 n=30311
+QueryNext:p50=0  p99=42  p999=125  max=834  avg=9 n=19913
+  All:    p50=41  p99=500  p999=833  max=34112569  avg=309 n=200000
+"cycles_per_op": 1000.00
 
 Better than the default implementation.
 std::multi_map is implementated as nodes, it has terrible cache behavior as the nodes of the tree are scattered
@@ -83,14 +84,6 @@ There's some improvement, but it looks like having to loop through each slot is 
 I'm going to say this microsecond bucket idea is ramen eggs.
 
 ## slotted tiered std::priority_queue
-Lets take the tiered std::priority_queue idea that appeared to have reduced the p99 just a little bit.
-We put the near events into slots of priority queues
 
-
-------- Latency (cycles) by operation -------- 
-  Schedule: p50=42  p99=250  p999=375  max=6292  avg=54 n=69761
-  Cancel:   p50=42  p99=291  p999=375  max=625  avg=61 n=39915
-  Advance:  p50=167  p99=459  p999=43350  max=40598604  avg=1306 n=40100
-  QuerySz:  p50=0  p99=42  p999=208  max=292  avg=8 n=30311
-  QueryNext:p50=0  p99=125  p999=291  max=625  avg=16 n=19913
-    All:    p50=42  p99=375  p999=542  max=40598604  avg=295 n=200000
+Take the implementation from challenge-04, event scheduler without cancel
+There, we used a slotted heap to avoid the O(log n) time problem.

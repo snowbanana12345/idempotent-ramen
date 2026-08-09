@@ -7,6 +7,7 @@ namespace hftu{
     template <typename T, uint32_t SLOTS, int64_t INTERVAL>
     class SlotHeaps{
         using CallBack = std::function<void(T, int64_t)>;
+        using Predicate = std::function<bool(T, int64_t)>;
 
         public:
             SlotHeaps(){
@@ -53,7 +54,15 @@ namespace hftu{
                 return fire_some(time_ns, call_back);
             }
 
-
+            void clean(Predicate predicate){
+                for (int i = 0; i < SLOTS; i++){
+                    auto &pq = m_slots[i].pq;
+                    while (!pq.empty() && !predicate(pq.top().value, pq.top().t)){
+                        pq.pop();
+                    }
+                }
+            }
+            
         private:
             struct Timed{
                 T value;
