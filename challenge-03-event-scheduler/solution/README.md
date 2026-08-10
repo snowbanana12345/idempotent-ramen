@@ -7,6 +7,11 @@ We have a sorted set problem, we can try to optimize it
 
 ## default solution performance
 
+base line correct solution that is provided.
+give O(log n) performance. 
+Cache performance is bad because tree structures with nodes have their memory dispersed
+They have to constantly dynamically allocate memory on the heap on insert and delete operations
+
 ------- Latency (cycles) by operation -------- 
   Schedule: p50=83  p99=750  p999=1208  max=9375  avg=155 n=69761
   Cancel:   p50=0  p99=500  p999=833  max=7916  avg=47 n=39915
@@ -20,6 +25,8 @@ The bulk of the p99 latency comes from the Schedule and Advance methods.
 Especially the advance method which could potentially trigger 
 
 ## std::priority_queue implementation
+
+see files : heap_impl.h
 
 use an std::priority_queue to determine ordering
 A hashmap as a source of truth for actual events.

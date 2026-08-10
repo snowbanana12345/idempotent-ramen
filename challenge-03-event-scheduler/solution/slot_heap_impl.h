@@ -1,7 +1,4 @@
-#include "solution.h"
-#include <queue>
-#include <vector>
-#include <unordered_set>
+#include "base.h"
 #include "slot_heap.h"
 
 namespace hftu {

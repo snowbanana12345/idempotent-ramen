@@ -1,9 +1,5 @@
-#include "solution.h"
-#include <queue>
-#include <set>
-#include <unordered_map>
-#include <unordered_set>
-#include <iostream>
+#include "base.h"
+
 
 namespace hftu{
     /*
@@ -81,7 +77,6 @@ namespace hftu{
 
             void schedule(uint64_t event_id, int64_t time_us){
                 if(time_us - m_curr_time_us < MICRO_SLOTS){
-      
                     insert_into_slots(event_id, time_us);
                 } else if(time_us - m_curr_time_us < FAR_THRESHOLD){
                     m_mid_pq.push({event_id, time_us});

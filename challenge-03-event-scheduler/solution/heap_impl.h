@@ -1,7 +1,5 @@
-#include "solution.h"
-#include <queue>
-#include <vector>
-#include <unordered_map>
+#include "base.h"
+
 
 namespace hftu{
 class EventScheduler {
