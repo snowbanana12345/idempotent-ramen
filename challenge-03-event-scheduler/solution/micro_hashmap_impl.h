@@ -12,13 +12,18 @@ class EventScheduler {
 
             }
 
-            ~EventScheduler() = default;
+            ~EventScheduler(){
+
+            }
 
             void schedule(uint64_t event_id, int64_t time_us){
                 auto it = m_events.find(event_id);
 
                 if (it != m_events.end() && it->second < m_curr_time + MICRO_SLOTS){ // reschedule
-                    delete_slot(event_id, time_us);
+                    delete_slot(event_id, it->second);
+                }
+                while (!m_cold_store.empty() && m_cold_store.top().t != m_events[m_cold_store.top().id]){
+                    m_cold_store.pop();
                 }
 
                 m_events[event_id] = time_us;
@@ -37,16 +42,20 @@ class EventScheduler {
                 if (found && it->second < m_curr_time + MICRO_SLOTS){
                     delete_slot(event_id, it->second);
                 }
-                m_events.erase(it);
+                if (found) m_events.erase(it);
+                while (!m_cold_store.empty() && m_cold_store.top().t != m_events[m_cold_store.top().id]){
+                    m_cold_store.pop();
+                }
                 return found;
             }
 
             uint32_t advance(int64_t new_time_us, EventCallback cb, void* user_data){
                 uint32_t fired = 0;
                 // ---- fire off hot events ----
-                for (int i = 0; i < MICRO_SLOTS && new_time_us <= m_curr_time + i; i++){
+                for (int i = 0; i < MICRO_SLOTS && m_curr_time + i <= new_time_us; i++){
                     uint32_t ind = (m_slot_ptr + i) % MICRO_SLOTS;
                     auto& mp = m_slots[ind];
+                    
                     for (uint64_t event_id : mp){
                         cb(event_id, m_curr_time + i, user_data);
                         m_events.erase(event_id);
@@ -109,10 +118,10 @@ class EventScheduler {
             std::priority_queue<Event, std::vector<Event>, EventComparator> m_cold_store;
             std::unordered_map<uint64_t, int64_t> m_events; 
 
-            uint32_t m_slot_ptr;
+            uint32_t m_slot_ptr = 0;
             std::unordered_set<uint64_t> m_slots[MICRO_SLOTS];
             
-            int64_t m_curr_time;
+            int64_t m_curr_time = 0;
 
             void insert_into_slots(uint64_t event_id, int64_t time_us){
                 uint32_t offset = static_cast<uint32_t>(time_us - m_curr_time);

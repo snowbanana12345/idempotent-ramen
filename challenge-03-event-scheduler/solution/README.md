@@ -92,6 +92,34 @@ The results are below.
 There's some improvement, but it looks like having to loop through each slot is very slow
 I'm going to say this microsecond bucket idea is ramen eggs.
 
+## micro second bucket ring buffer with hash maps
+
+see files : micro_hashmap_impl.h
+
+we replace each of the microsecond slots with hashmaps
+This makes it better because the hashmaps themselves can check if a event has been cancelled.
+This avoids maintaining the overflow buffer and checking it on every loop
+
+------- Latency (cycles) by operation -------- 
+Schedule: p50=42  p99=208  p999=333  max=10726  avg=46 n=209283
+Cancel:   p50=0  p99=125  p999=250  max=375  avg=17 n=119745
+Advance:  p50=1042  p99=1542  p999=226057  max=34165145  avg=2400 n=120300
+QuerySz:  p50=0  p99=42  p999=84  max=7583  avg=7 n=90933
+QueryNext:p50=84  p99=375  p999=500  max=2083  avg=122 n=59739
+  All:    p50=42  p99=1375  p999=1666  max=34165145  avg=514 n=600000
+"cycles_per_op": 2750.00
+
+The key assumption as to why we expect this implementation to perform is that is very efficient in batch processing
+Remember, the order of processed events within the same microsecond is unimportant.
+This implementation seeks to leverage that. 
+We count the number of empty loops into empty buckets.
+
+empty map counter : 39938572 ~= 30 million
+from the above stats, the advance method is called 120k times.
+On every advance call, on average, our implementation hits 300 empty buckets.
+
+This should explain why the micro bucket idea doesn't quite work for this workload.
+
 ## slotted tiered std::priority_queue
 
 Take the implementation from challenge-04, event scheduler without cancel
