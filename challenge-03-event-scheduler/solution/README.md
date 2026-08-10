@@ -47,6 +47,8 @@ But its still not good enough
 
 ## micro second bucket ring buffer
 
+See files : micro_bucket_impl.h
+
 Since the nearest 1000 us are hot, we create a 1,000 X 1,000 buffer
 the first 1000 repesents we want to have 1 slot for each microsecond.
 the 1,000 is the guess that we take the vast majority of the time, there will not be more than 1000 at a time
@@ -87,3 +89,16 @@ I'm going to say this microsecond bucket idea is ramen eggs.
 
 Take the implementation from challenge-04, event scheduler without cancel
 There, we used a slotted heap to avoid the O(log n) time problem.
+
+
+------- Latency (cycles) by operation -------- 
+  Schedule: p50=84  p99=250  p999=334  max=64577  avg=105 n=558088
+  Cancel:   p50=83  p99=291  p999=375  max=8375  avg=94 n=319320
+  Advance:  p50=375  p99=750  p999=150671  max=34689111  avg=1457 n=320800
+  QuerySz:  p50=41  p99=42  p999=58  max=4958  avg=23 n=242488
+  QueryNext:p50=0  p99=42  p999=42  max=125  avg=10 n=159304
+    All:    p50=83  p99=625  p999=833  max=34689111  avg=352 n=1600000
+"cycles_per_op": 1250.00
+
+It is not better actually.
+For the problem with no cancel, 

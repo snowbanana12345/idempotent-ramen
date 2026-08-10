@@ -7,8 +7,6 @@
 #include <unordered_map>
 #include <climits>
 
-namespace hftu {
-
 // Your EventScheduler must support:
 //
 //   schedule(event_id, time_us)
@@ -31,21 +29,8 @@ namespace hftu {
 //   next_event_time() -> int64_t
 //     Time of next event, or INT64_MAX if empty.
 //
-class Impl;
 
-class EventScheduler {
-public:
-    EventScheduler();
-    ~EventScheduler();
-
-    void schedule(uint64_t event_id, int64_t time_us);
-    bool cancel(uint64_t event_id);
-    uint32_t advance(int64_t new_time_us, EventCallback cb, void* user_data);
-    uint64_t size() const;
-    int64_t next_event_time() const;
-
-private:
-    std::unique_ptr<Impl> impl;
-};
-
-} // namespace hftu
+// #include "default_impl.h"
+// #include "heap_impl.h"
+// #include "micro_bucket_impl.h"
+#include "slot_heap_impl.h"

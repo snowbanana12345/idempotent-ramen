@@ -4,11 +4,13 @@
 #include <unordered_map>
 
 namespace hftu{
-    class Impl{
+class EventScheduler {
         public:
-            Impl(){
+            EventScheduler(){
                 m_events.reserve(1'000'000);
             }
+
+            ~EventScheduler() = default;
 
             void schedule(uint64_t event_id, int64_t time_us){
                 m_pq.push({event_id, time_us});
@@ -72,5 +74,3 @@ namespace hftu{
             }
     };
 }
-
-#include "pimpl.h"

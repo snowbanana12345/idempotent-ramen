@@ -7,8 +7,11 @@
 
 namespace hftu {
 
-    class Impl{
+class EventScheduler {
         public:
+            EventScheduler() = default;
+            ~EventScheduler() = default;
+
             void schedule(uint64_t event_id, int64_t time_us) {
                 // Implicit cancel if already scheduled
                 auto it = lookup_.find(event_id);
@@ -65,5 +68,3 @@ namespace hftu {
             std::unordered_map<uint64_t, std::multimap<int64_t, uint64_t>::iterator> lookup_;
     };
 } 
-
-#include "pimpl.h"

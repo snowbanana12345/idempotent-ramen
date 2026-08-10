@@ -67,9 +67,9 @@ namespace hftu{
     constexpr uint32_t SLOT_SIZE = 1000;
     constexpr int64_t FAR_THRESHOLD = 1'000'000;
 
-    class Impl{
+    class EventScheduler {
         public:
-            Impl(){
+            EventScheduler (){
                 std::memset(m_inner_ptrs, 0, sizeof(m_inner_ptrs));
                 m_curr_time_us = 0;
                 m_slot_ptr = 0;
@@ -258,5 +258,3 @@ namespace hftu{
             }
     };
 }
-
-#include "pimpl.h"

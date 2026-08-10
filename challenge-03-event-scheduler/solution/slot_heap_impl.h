@@ -18,9 +18,9 @@ namespace hftu {
     constexpr uint32_t FAR_SLOTS = 64;
     constexpr int64_t FAR_INTERVAL = SECOND; // 60 second
 
-    class Impl{
+    class EventScheduler {
         public:
-            Impl(){
+            EventScheduler(){
                 m_time_map.reserve(1'000'000);
             }
 
@@ -112,5 +112,3 @@ namespace hftu {
             };
     };
 }
-
-#include "pimpl.h"

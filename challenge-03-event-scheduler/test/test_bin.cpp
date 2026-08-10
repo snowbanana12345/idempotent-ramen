@@ -3,19 +3,6 @@
 #include <array>
 
 
-/*
-class EventScheduler {
-public:
-    EventScheduler() = default;
-    ~EventScheduler() = default;
-
-    void schedule(uint64_t event_id, int64_t time_us);
-    bool cancel(uint64_t event_id);
-    uint32_t advance(int64_t new_time_us, EventCallback cb, void* user_data);
-    uint64_t size() const;
-    int64_t next_event_time() const;
-*/
-
 using namespace hftu;
 
 TEST(Schedule, One){
