@@ -8,13 +8,13 @@ using namespace hftu;
 using UTHeap = SlotMapHeaps<int, 2, 10> ;
 using Cb = void(*)(int, int64_t);
 
-TEST(Slotted, Empty){
+TEST(SlotMap, Empty){
     UTHeap h;
     EXPECT_EQ(h.start_time(), 0);
     EXPECT_EQ(h.end_time(), 20);
 }
 
-TEST(Slotted, Insert){
+TEST(SlotMap, Insert){
     UTHeap h;
     EXPECT_EQ(h.first_event_time(), INT64_MAX);
     EXPECT_EQ(h.size(), 0);
@@ -23,21 +23,21 @@ TEST(Slotted, Insert){
     EXPECT_EQ(h.size(), 1);
 }
 
-TEST(Slotted, InsertSecondSlot){
+TEST(SlotMap, InsertSecondSlot){
     UTHeap h;
     h.insert(199, 15);
     EXPECT_EQ(h.first_event_time(), 15);
     EXPECT_EQ(h.size(), 1);
 }
 
-TEST(Slotted, InsertOutRange){
+TEST(SlotMap, InsertOutRange){
     UTHeap h;
     h.insert(199, 21);
     EXPECT_EQ(h.first_event_time(), INT64_MAX);
     EXPECT_EQ(h.size(), 0);
 }
 
-TEST(Slotted, Advance){
+TEST(SlotMap, Advance){
     UTHeap h;
     static int fires = 0;
 
@@ -53,7 +53,7 @@ TEST(Slotted, Advance){
     EXPECT_EQ(h.first_event_time(), INT64_MAX);
 }
 
-TEST(Slotted, InsertSameTime){
+TEST(SlotMap, InsertSameTime){
     UTHeap h;
     static int fires = 0;
     Cb call_back = [](int id, int64_t t) { 
@@ -66,7 +66,7 @@ TEST(Slotted, InsertSameTime){
     EXPECT_EQ(fires, 2);
 }
 
-TEST(Slotted, RingRotation){
+TEST(SlotMap, RingRotation){
     UTHeap h;
      Cb call_back = [](int id, int64_t t) { };
     h.advance(10, call_back);
@@ -74,7 +74,7 @@ TEST(Slotted, RingRotation){
     EXPECT_EQ(h.end_time(), 30);
 }
 
-TEST(Slotted, FullRingRotation){
+TEST(SlotMap, FullRingRotation){
     UTHeap h;
     Cb call_back = [](int id, int64_t t) { };
     h.advance(35, call_back);
@@ -82,7 +82,7 @@ TEST(Slotted, FullRingRotation){
     EXPECT_EQ(h.end_time(), 50);
 }
 
-TEST(Slotted, FullRingRotationCorner1){
+TEST(SlotMap, FullRingRotationCorner1){
     UTHeap h;
     Cb call_back = [](int id, int64_t t) { };
     h.advance(39, call_back);
@@ -98,7 +98,7 @@ TEST(Slotted, FullRingRotationCorner2){
     EXPECT_EQ(h.end_time(), 60);
 }
 
-TEST(Slotted, SortedOrder){
+TEST(SlotMap, SortedOrder){
     UTHeap h;
     static std::vector<int> times;
     Cb call_back = [](int id, int64_t t) { 
@@ -116,7 +116,7 @@ TEST(Slotted, SortedOrder){
     EXPECT_EQ(times[3], 8);
 }
 
-TEST(Slotted, AdvancePastSlot){
+TEST(SlotMap, AdvancePastSlot){
     UTHeap h;
     static int fires = 0;
     Cb call_back = [](int id, int64_t t) { 
@@ -124,11 +124,12 @@ TEST(Slotted, AdvancePastSlot){
     };
     h.insert(199, 7);
     h.insert(125, 15);
+    EXPECT_EQ(h.size(), 2);
     EXPECT_EQ(h.advance(15, call_back), 2);
     EXPECT_EQ(fires, 2);
 }
 
-TEST(Slotted, advance_earlier){
+TEST(SlotMap, advance_earlier){
     UTHeap h;
     static int fires = 0;
     Cb call_back = [](int id, int64_t t) { 
