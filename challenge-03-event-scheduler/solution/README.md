@@ -98,7 +98,7 @@ see files : micro_hashmap_impl.h
 
 we replace each of the microsecond slots with hashmaps
 This makes it better because the hashmaps themselves can check if a event has been cancelled.
-This avoids maintaining the overflow buffer and checking it on every loop
+This avoids maintaining the overflow priority_queue and checking it on every loop
 
 ------- Latency (cycles) by operation -------- 
 Schedule: p50=42  p99=208  p999=333  max=10726  avg=46 n=209283
@@ -120,20 +120,45 @@ On every advance call, on average, our implementation hits 300 empty buckets.
 
 This should explain why the micro bucket idea doesn't quite work for this workload.
 
-## slotted tiered std::priority_queue
+## slotted std::priority_queue
 
-Take the implementation from challenge-04, event scheduler without cancel
-There, we used a slotted heap to avoid the O(log n) time problem.
+see files : slot_heap_impl.h , slot_heap.h
+
+Idea is to divide the interval 0 to 1000 us into slots
+Each slot has its own priority_queue
+On advance, the bubble up algo will only apply to the priority_queue in the first slot
+this achieves sub O(n log n) performance on advance
+The slots are arranged in a rotating ring to avoid dynamically reallocating the queues
+
+------- Latency (cycles) by operation -------- 
+Schedule: p50=84  p99=250  p999=334  max=64577  avg=105 n=558088
+Cancel:   p50=83  p99=291  p999=375  max=8375  avg=94 n=319320
+Advance:  p50=375  p99=750  p999=150671  max=34689111  avg=1457 n=320800
+QuerySz:  p50=41  p99=42  p999=58  max=4958  avg=23 n=242488
+QueryNext:p50=0  p99=42  p999=42  max=125  avg=10 n=159304
+All:    p50=83  p99=625  p999=833  max=34689111  avg=352 n=1600000
+"cycles_per_op": 1250.00
+
+It's not better actually. 
+To handle reschedule and advance, it needs to constantly check against a large hashmap for membership and removal
+Large hashmap access is non cache friendly as the event_id are randomly scattered throughout the hashmap
+
+## slotted heap map
+
+The idea is to break up the hash maps into slots
+Instead of a huge global hash map
+When advancing, each call of the advance would be accessing a much smaller hash map
 
 
 ------- Latency (cycles) by operation -------- 
-  Schedule: p50=84  p99=250  p999=334  max=64577  avg=105 n=558088
-  Cancel:   p50=83  p99=291  p999=375  max=8375  avg=94 n=319320
-  Advance:  p50=375  p99=750  p999=150671  max=34689111  avg=1457 n=320800
-  QuerySz:  p50=41  p99=42  p999=58  max=4958  avg=23 n=242488
-  QueryNext:p50=0  p99=42  p999=42  max=125  avg=10 n=159304
-    All:    p50=83  p99=625  p999=833  max=34689111  avg=352 n=1600000
-"cycles_per_op": 1250.00
+Schedule: p50=125  p99=334  p999=3958  max=24685  avg=138 n=348805
+Cancel:   p50=84  p99=333  p999=3375  max=33702  avg=117 n=199575
+Advance:  p50=375  p99=1417  p999=240289  max=32422477  avg=1747 n=200500
+QuerySz:  p50=0  p99=84  p999=208  max=11767  avg=10 n=151555
+QueryNext:p50=41  p99=167  p999=292  max=8750  avg=28 n=99565
+All:    p50=125  p99=834  p999=6102  max=32422477  avg=426 n=1000000
+"cycles_per_op": 1668.00
 
-It is not better actually.
-For the problem with no cancel, 
+This did not make it better at all.
+Breaking the hashmap into smaller hashmaps required more overhead on our part to route the orders into the correct hashmap
+The improvement in hashmap access if any does not cover that.

@@ -7,7 +7,6 @@ namespace hftu{
     template <typename T, uint32_t SLOTS, int64_t INTERVAL>
     class SlotMapHeaps{
         using CallBack = std::function<void(T, int64_t)>;
-        using Predicate = std::function<bool(T, int64_t)>;
 
         public:
             SlotMapHeaps(){
@@ -35,17 +34,18 @@ namespace hftu{
             }
 
             bool remove(T value){
-                uint32_t removed = 0;
+                bool removed = false;
                 for (uint32_t i = 0; i < SLOTS; i++){
                     auto& pq = m_slots[i].pq;
                     auto& mp = m_slots[i].time_map;
-                    removed += mp.erase(value);
-                    while (!pq.empty() && mp[pq.top().value] != pq.top().t){
+                    bool r  = mp.erase(value);
+                    removed |= r;
+                    while (!pq.empty() && (mp.find(pq.top().value) == mp.end() || mp.at(pq.top().value) != pq.top().t)){
                         pq.pop();
                     }
                 }
-
-                return removed > 0;
+  
+                return removed;
             }
 
             int64_t first_event_time() const{
@@ -62,7 +62,8 @@ namespace hftu{
                 uint32_t size_ = 0;
 
                 for (uint32_t i = 0; i < SLOTS; i++){
-                    size_ += m_slots[i].time_map.size();
+                    uint32_t slot_size = m_slots[i].time_map.size();
+                    size_ += slot_size;
                 }
 
                 return size_;
@@ -99,13 +100,13 @@ namespace hftu{
             Slot m_slots[SLOTS];
 
             uint32_t fire_all(int64_t time_ns, CallBack call_back){
-                uint32_t fired = this->size();
+                uint32_t fired = 0;
                 for (int i = 0; i < SLOTS; i++) {
                     auto &pq = m_slots[m_slot_ptr].pq;
                     auto &mp = m_slots[m_slot_ptr].time_map;
                     while (!pq.empty()){
                         Timed t = pq.top(); pq.pop();
-                        if(mp[t.value] == t.t) call_back(t.value, t.t);
+                        if(mp.find(pq.top().value) != mp.end() && mp.at(pq.top().value) == pq.top().t) call_back(t.value, t.t);
                     }
                     
                     fired += mp.size();
@@ -136,16 +137,15 @@ namespace hftu{
                             if (it != mp.end() && it->second == t.t){
                                 call_back(t.value, t.t);
                                 mp.erase(it);
+                                ++fired;
                             }
-                            
-                            ++fired;
                         }
                         break;
                     }
                     else { // process the entire block
                         while (!pq.empty()){
                             Timed t = pq.top(); pq.pop();
-                            if(mp[t.value] == t.t) call_back(t.value, t.t);
+                            if(mp.find(pq.top().value) != mp.end() && mp.at(pq.top().value) == pq.top().t) call_back(t.value, t.t);
                         }
                         fired += mp.size();
                         mp.clear();

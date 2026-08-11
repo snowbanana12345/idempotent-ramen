@@ -47,8 +47,8 @@ TEST(Cancel, Basic){
     EXPECT_EQ(scheduler.size(), 1);
     EXPECT_EQ(scheduler.next_event_time(), 5);
     EXPECT_TRUE(scheduler.cancel(7));
-    EXPECT_EQ(scheduler.size(), 0);
     EXPECT_EQ(scheduler.next_event_time(), INT64_MAX);
+    EXPECT_EQ(scheduler.size(), 0);
 }
 
 TEST(Cancel, Empty){
