@@ -148,7 +148,8 @@ Large hashmap access is non cache friendly as the event_id are randomly scattere
 The idea is to break up the hash maps into slots
 Instead of a huge global hash map
 When advancing, each call of the advance would be accessing a much smaller hash map
-
+Also, when advancing past an entire slot, instead of individually deleting each hash map key,
+we can call map.clear() at the end which improves batch efficiency.
 
 ------- Latency (cycles) by operation -------- 
 Schedule: p50=125  p99=334  p999=3958  max=24685  avg=138 n=348805
