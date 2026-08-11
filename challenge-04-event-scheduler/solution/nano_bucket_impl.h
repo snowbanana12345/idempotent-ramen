@@ -1,10 +1,16 @@
 #include "nano_bucket.h"
+#include "slot_heap.h"
 #include "queue"
 
 namespace hftu{
     struct Event {};
 
     constexpr uint32_t BUCKETS = 1024;
+    constexpr uint32_t COLD_SLOTS = 256; // support about 60 seconds
+    // memory limit is 1 GB. 
+    // for 1 million cold slots
+    constexpr int64_t MILLI_SECOND = 1024 * 1024;
+    constexpr int64_t COLD_INTERVAL = 256 * MILLI_SECOND; // 64 * 16 ~= 1024 ~= 1 SECOND
 
     struct Record{
         Event* e;
@@ -20,7 +26,7 @@ namespace hftu{
     template <typename Derived>
     class EventScheduler {
     public:
-        EventScheduler() : m_buckets(1000){
+        EventScheduler() : m_buckets(10'000){
 
         }
         Derived* me() { return static_cast<Derived*>(this); }
@@ -29,8 +35,8 @@ namespace hftu{
             if (time_ns < m_buckets.end_time()){
                 m_buckets.insert(event, time_ns);
             }
-            else{
-                m_cold_store.push({event, time_ns});
+            else if (time_ns < m_cold.end_time()){
+                m_cold.insert(event, time_ns);
             }
         }
 
@@ -42,33 +48,29 @@ namespace hftu{
             uint32_t fired = 0;
             
             fired += m_buckets.advance(new_time_ns, event_cb);
+            fired += m_cold.advance(new_time_ns, event_cb);
 
-            while (!m_cold_store.empty() && m_cold_store.top().t  <= new_time_ns){
-                Record record = m_cold_store.top(); m_cold_store.pop();
-                me()->fire(record.e, record.t);
-                fired++;
-            }
+            std::function<void(Event*, int64_t)> event_move = [this](Event* event, int64_t t) { 
+                m_buckets.insert(event, t);
+            };
 
-            while (!m_cold_store.empty() && m_cold_store.top().t <= m_buckets.end_time()){
-                Record record = m_cold_store.top(); m_cold_store.pop();
-                m_buckets.insert(record.e, record.t);
-            }
+            m_cold.advance(m_buckets.end_time(), event_move);
 
             return fired;
         }
 
         uint64_t size() const { 
-            return m_buckets.size() + m_cold_store.size();
+            return m_buckets.size() + m_cold.size();
         }
 
         int64_t next_event_time() const {
             if (m_buckets.size() > 0) return m_buckets.first_event_time();
-            if (!m_cold_store.empty()) return m_cold_store.top().t;
+            if (m_cold.size() > 0) return m_cold.first_event_time();
             return INT64_MAX;
         }
 
     private:
         NanoBuckets<Event*, BUCKETS> m_buckets;
-        std::priority_queue<Record, std::vector<Record>, RecordComparator> m_cold_store;
+        SlotHeaps<Event*, COLD_SLOTS, COLD_INTERVAL> m_cold;
     };
 }

@@ -24,6 +24,7 @@ namespace hftu{
             }
 
             void insert(T value, int64_t time_ns){
+                if (time_ns < start_time() || time_ns >= end_time()) return;
                 uint32_t offset = (time_ns - start_time()) / INTERVAL;
                 uint32_t ind = (m_slot_ptr + offset) % SLOTS;
                 m_slots[ind].pq.push({value, time_ns});

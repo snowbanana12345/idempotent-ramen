@@ -11,6 +11,7 @@ namespace hftu{
                 for (int i = 0; i < BUCKETS; i++){
                     m_buckets[i].reserve(initial_bucket_size);
                 }
+                m_size = 0;
             }
 
             int64_t start_time(){
@@ -22,6 +23,7 @@ namespace hftu{
             }
 
             void insert(T value, int64_t time_ns){
+                if (time_ns < start_time() || time_ns >= end_time()) return;
                 uint32_t offset = static_cast<uint32_t>(time_ns - m_curr_time);
                 uint32_t ind = (m_slot_ptr + offset) % BUCKETS;
                 if (m_buckets[ind].empty()) m_non_empty_times.push(time_ns);
@@ -30,6 +32,7 @@ namespace hftu{
             }
 
             uint32_t advance(uint64_t new_time_ns, std::function<void(T, int64_t)> call_back){
+                uint32_t fired = 0;
                 while (!m_non_empty_times.empty() && m_non_empty_times.top() <= new_time_ns){
                     int64_t t = m_non_empty_times.top(); 
                     m_non_empty_times.pop();
@@ -39,6 +42,7 @@ namespace hftu{
                     for (T value : bucket){
                         call_back(value, t);
                     }
+                    fired += bucket.size();
                     m_size -= bucket.size();
                     bucket.clear();
                 }
@@ -46,6 +50,8 @@ namespace hftu{
                 uint32_t offset = static_cast<uint32_t>(new_time_ns - m_curr_time);
                 m_slot_ptr = (m_slot_ptr + offset) % BUCKETS;
                 m_curr_time = new_time_ns;
+
+                return fired;
             }
 
             int64_t first_event_time() const{
@@ -58,7 +64,7 @@ namespace hftu{
             }
 
         private:
-            std::priority_queue<int64_t> m_non_empty_times;
+            std::priority_queue<int64_t, std::vector<int64_t>, std::greater<int64_t>> m_non_empty_times;
             std::vector<T> m_buckets[BUCKETS];
             uint32_t m_slot_ptr;
             int64_t m_curr_time;
