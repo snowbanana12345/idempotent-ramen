@@ -1,32 +1,35 @@
 // Challenge 02: Multi-Symbol Order Book — Naive Reference Implementation
 // This is a correct but slow reference. You can do much better!
 
-#include "solution.h"
+#include "base.h"
 
 namespace hftu {
-    class Impl {
+
+
+class MultiOrderBook {
     public:
-        Impl() {
+        explicit MultiOrderBook(Venue& venue) : venue_(venue){
             our_orders_.reserve(1'000'000);
             orders_.reserve(1'000'000);
         }
+        ~MultiOrderBook() = default;
 
-        void send_order(uint64_t our_id, uint16_t symbol, int side, int64_t price, int64_t qty, Venue& venue) {
-            uint64_t exchange_id = venue.send_order(our_id, symbol, side, price, qty);
+        void send_order(uint64_t our_id, uint16_t symbol, int side, int64_t price, int64_t qty) {
+            uint64_t exchange_id = venue_.send_order(our_id, symbol, side, price, qty);
             our_orders_[our_id] = exchange_id;
         }
 
-        void modify_our_order(uint64_t our_id, int64_t new_price, int64_t new_qty, Venue& venue) {
+        void modify_our_order(uint64_t our_id, int64_t new_price, int64_t new_qty) {
             auto it = our_orders_.find(our_id);
             if (it == our_orders_.end()) return;
-            uint64_t new_eid = venue.modify_order(it->second, new_price, new_qty);
+            uint64_t new_eid = venue_.modify_order(it->second, new_price, new_qty);
             it->second = new_eid;
         }
 
-        void cancel_our_order(uint64_t our_id, Venue& venue) {
+        void cancel_our_order(uint64_t our_id) {
             auto it = our_orders_.find(our_id);
             if (it == our_orders_.end()) return;
-            venue.cancel_order(it->second);
+            venue_.cancel_order(it->second);
             our_orders_.erase(it);
         }
         
@@ -189,7 +192,7 @@ namespace hftu {
         std::unordered_map<uint64_t, Order> orders_;        // exchange_id -> order
         std::unordered_map<uint64_t, uint64_t> our_orders_; // our_id -> exchange_id
         SymbolBook books_[NUM_SYMBOLS];
+
+        Venue& venue_;
     };
 }
-
-#include "pimpl.h"
