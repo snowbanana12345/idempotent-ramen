@@ -44,6 +44,30 @@ TEST(Schedule, InOrder){
     EXPECT_EQ(sch.records[2].e, &event1);
 }
 
+TEST(Schedule, InOrderMid){
+    UTSchel sch;
+    Event event1;
+    Event event2;
+    Event event3;
+    Event event4;
+    Event event5;
+    Event event6;
+    sch.schedule(&event1, 512);
+    sch.schedule(&event2, 2918);
+    sch.schedule(&event3, 1007);
+    sch.schedule(&event4, 1570);
+    sch.schedule(&event5, 1099);
+    sch.schedule(&event6, 712);
+    EXPECT_EQ(sch.advance(3000), 6);
+    EXPECT_EQ(sch.records.size(), 6);
+    EXPECT_EQ(sch.records[0].e, &event1);
+    EXPECT_EQ(sch.records[1].e, &event6);
+    EXPECT_EQ(sch.records[2].e, &event3);
+    EXPECT_EQ(sch.records[3].e, &event5);
+    EXPECT_EQ(sch.records[4].e, &event4);
+    EXPECT_EQ(sch.records[5].e, &event2);
+}
+
 TEST(Schedule, NearThresholdFire){
     UTSchel sch;
     Event event1;

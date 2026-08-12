@@ -1,5 +1,6 @@
 #include <queue>
 #include <functional>
+#include <iostream>
 
 namespace hftu{
     template <typename T, uint32_t SLOTS, int64_t INTERVAL>
@@ -32,7 +33,7 @@ namespace hftu{
 
             int64_t first_event_time() const{
                 for (int i = 0; i < SLOTS; i++){
-                    uint32_t ind = (m_slot_ptr + 1) % SLOTS;
+                    uint32_t ind = (m_slot_ptr + i) % SLOTS;
                     auto& pq = m_slots[ind].pq;
                     if (!pq.empty()) return pq.top().t;
                 }

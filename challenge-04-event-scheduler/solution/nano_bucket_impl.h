@@ -6,11 +6,9 @@ namespace hftu{
     struct Event {};
 
     constexpr uint32_t BUCKETS = 1024;
-    constexpr uint32_t COLD_SLOTS = 256; // support about 60 seconds
-    // memory limit is 1 GB. 
-    // for 1 million cold slots
+    constexpr uint32_t COLD_SLOTS = 256; 
     constexpr int64_t MILLI_SECOND = 1024 * 1024;
-    constexpr int64_t COLD_INTERVAL = 256 * MILLI_SECOND; // 64 * 16 ~= 1024 ~= 1 SECOND
+    constexpr int64_t COLD_INTERVAL = 256 * MILLI_SECOND;
 
     struct Record{
         Event* e;
