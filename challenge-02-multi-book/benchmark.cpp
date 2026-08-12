@@ -482,6 +482,64 @@ LatencyStats compute_stats(std::vector<uint64_t>& latencies) {
 
 } // anonymous namespace
 
+constexpr Operation::Type op_types[] = {
+    Operation::ADD,
+    Operation::CANCEL,
+    Operation::MODIFY,
+    Operation::SEND_OUR,
+    Operation::MODIFY_OUR,
+    Operation::CANCEL_OUR,
+    Operation::BEST_BID,
+    Operation::BEST_ASK,
+    Operation::TOP_LEVELS,
+    Operation::VOLUME_NEAR_BEST,
+    Operation::QUEUE_POSITION
+};
+
+std::string op_to_string(Operation::Type op){
+    switch (op){
+        case Operation::Type::ADD: return "ADD";
+        case Operation::Type::CANCEL: return "CANCEL";
+        case Operation::Type::MODIFY: return "MODIFY";
+        case Operation::Type::SEND_OUR: return "SEND_OUR";
+        case Operation::Type::MODIFY_OUR: return "MODIFY_OUR";
+        case Operation::Type::CANCEL_OUR: return "CANCEL_OUR";
+        case Operation::Type::BEST_BID: return "BEST_BID";
+        case Operation::Type::BEST_ASK: return "BEST_ASK";
+        case Operation::Type::TOP_LEVELS: return "TOP_LEVELS";
+        case Operation::Type::VOLUME_NEAR_BEST: return "VOLUME_NEAR_BEST";
+        case Operation::Type::QUEUE_POSITION: return "QUEUE_POSITION";
+    }
+    return "UNKNOWN";
+}
+
+class LatencyByOp{
+    private:
+        std::unordered_map<Operation::Type, std::vector<uint64_t>> data;
+
+    public:
+        LatencyByOp(uint32_t initial_size){
+            for (Operation::Type op_type : op_types){
+                data[op_type].reserve(initial_size);
+            }
+        }
+
+        void add_latency(Operation::Type op, int64_t latency){
+            data[op].push_back(latency);
+        }
+
+        void compute_and_print(){
+            std::fprintf(stderr, "---- AGGREGATE LATENCIES ----");
+            for (auto& [op, latencies] : data){
+                LatencyStats stats = compute_stats(latencies);
+                std::string op_str = op_to_string(op);
+                std::fprintf(stderr, "%s Latency (cycles): p50=%lu  p99=%lu  p999=%lu  max=%lu  avg=%.0f\n",
+                     op_str.c_str(), stats.p50, stats.p99, stats.p999, stats.max, stats.avg);
+            }
+            std::fprintf(stderr, "---- END ----");
+        }
+};
+
 // ---------------------------------------------------------------------------
 // Benchmarks
 // ---------------------------------------------------------------------------
@@ -494,8 +552,8 @@ static hftu::RegisterBenchmark reg_solution(
 
         const auto wl = generate_workload(cfg);
 
-        std::vector<uint64_t> all_latencies;
-        all_latencies.reserve(wl.timed.size() * static_cast<size_t>(iterations));
+        
+        LatencyByOp latencies(wl.timed.size() * static_cast<size_t>(iterations));
 
         uint64_t total_cycles = 0;
 
@@ -517,15 +575,13 @@ static hftu::RegisterBenchmark reg_solution(
                 hftu::clobber();
                 uint64_t t1 = hftu::cycle_end();
                 uint64_t lat = t1 - t0;
-                all_latencies.push_back(lat);
+                latencies.add_latency(op.type, lat);
                 total_cycles += lat;
             }
         }
 
         // Print latency stats to stderr for user feedback
-        auto stats = compute_stats(all_latencies);
-        std::fprintf(stderr, "  Latency (cycles): p50=%lu  p99=%lu  p999=%lu  max=%lu  avg=%.0f\n",
-                     stats.p50, stats.p99, stats.p999, stats.max, stats.avg);
+        latencies.compute_and_print();
 
         return total_cycles;
     }
