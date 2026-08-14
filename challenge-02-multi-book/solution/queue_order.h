@@ -66,6 +66,6 @@ namespace hftu{
                 int64_t quantity;
             };
 
-            std::unordered_map<int64_t, std::list<Entry>> queues;
+            std::unordered_map<int64_t, std::vector<Entry>> queues;
     };
 }

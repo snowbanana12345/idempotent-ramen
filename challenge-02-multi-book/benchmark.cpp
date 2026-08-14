@@ -529,14 +529,14 @@ class LatencyByOp{
         }
 
         void compute_and_print(){
-            std::fprintf(stderr, "---- AGGREGATE LATENCIES ----");
+            std::fprintf(stderr, "---- AGGREGATE LATENCIES ----\n");
             for (auto& [op, latencies] : data){
                 LatencyStats stats = compute_stats(latencies);
                 std::string op_str = op_to_string(op);
                 std::fprintf(stderr, "%s Latency (cycles): p50=%lu  p99=%lu  p999=%lu  max=%lu  avg=%.0f\n",
                      op_str.c_str(), stats.p50, stats.p99, stats.p999, stats.max, stats.avg);
             }
-            std::fprintf(stderr, "---- END ----");
+            std::fprintf(stderr, "---- END ----\n");
         }
 };
 
