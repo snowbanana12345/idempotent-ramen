@@ -6,4 +6,5 @@
 // The producer calls push() from one thread, the consumer calls pop() from another.
 // You MUST ensure thread safety between the producer and consumer.
 
-#include "default_impl.h"
+// #include "default_impl.h"
+#include "atomic_impl.h"

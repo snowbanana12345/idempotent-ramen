@@ -3,7 +3,7 @@
 #include <mutex>
 #include <vector>
 #include <iostream>
-
+#include <atomic>
 
 namespace hftu{
     struct Message {

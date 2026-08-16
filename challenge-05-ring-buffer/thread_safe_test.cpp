@@ -2,8 +2,11 @@
 #include "thread"
 
 static constexpr uint32_t TOTAL_OPS = 1'000'000;
+static constexpr uint32_t MAX_LOOP_COUNT = 5000 * TOTAL_OPS;
 
 int main(){
+    // returns within a second if implementation is indeed thread safe
+    // gets stuck in the while loops 
     hftu::RingBuffer rb(2048);
     std::vector<hftu::Message> published;
     published.reserve(TOTAL_OPS);
@@ -15,10 +18,12 @@ int main(){
     std::thread consumer([&]() {
         hftu::Message msg;
         consumer_ready.store(true, std::memory_order_release);
-        while(consumed.size() < TOTAL_OPS) {
+        uint64_t loop_count = 0;
+        while(consumed.size() <  TOTAL_OPS && loop_count < MAX_LOOP_COUNT) {
             if (rb.pop(msg)){
                 consumed.push_back(msg);
             }
+            loop_count++;
         }
     });
 
@@ -26,6 +31,7 @@ int main(){
 
     std::thread producer([&]() {
         hftu::Message msg;
+        uint64_t loop_count = 0;
         for (size_t i = 0; i < TOTAL_OPS; ++i) {
             msg.timestamp = static_cast<int64_t>(i);
             msg.sequence = i;
@@ -34,8 +40,8 @@ int main(){
             msg.price = static_cast<int64_t>(i * 100 + 1);
             msg.quantity = static_cast<int64_t>((i & 0xFF) + 1);
             msg.order_id = static_cast<int64_t>(i);
-            while (!rb.push(msg)) {
-                
+            while (!rb.push(msg) && loop_count < MAX_LOOP_COUNT) {
+                loop_count++;
             }
             published.push_back(msg);
         }
