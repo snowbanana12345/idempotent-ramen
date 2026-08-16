@@ -22,7 +22,7 @@ public:
     }
 
     // Pop a message into out (consumer thread). Returns false if empty.
-    bool RingBuffer::pop(Message& out) {
+    bool pop(Message& out) {
         std::lock_guard<std::mutex> lock(mtx_);
         if (count_ == 0) return false;
         out = buf_[head_];
@@ -32,7 +32,7 @@ public:
     }
 
     // Number of elements currently stored.
-    size_t RingBuffer::size() const {
+    size_t size() const {
         std::lock_guard<std::mutex> lock(mtx_);
         return count_;
     }
