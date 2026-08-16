@@ -7,4 +7,4 @@
 // You MUST ensure thread safety between the producer and consumer.
 
 // #include "default_impl.h"
-#include "atomic_impl.h"
+#include "atomic_counter_impl.h"

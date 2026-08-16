@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <atomic>
+#include <cassert>
 
 namespace hftu{
     struct Message {

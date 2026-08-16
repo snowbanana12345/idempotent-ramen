@@ -8,12 +8,13 @@ class RingBuffer {
     explicit RingBuffer(size_t capacity)
     : buf_(capacity), capacity_(capacity), count_(0) {
         buf_.reserve(capacity);
+        assert((capacity & (capacity - 1)) == 0);
     }
 
     bool push(const Message& msg) {
-        if (count_.load(std::memory_order_acquire) == capacity_) return false;
+        if (count_.load(std::memory_order_relaxed) == capacity_) return false;
         buf_[producer_ptr_] = msg;
-        producer_ptr_ = (producer_ptr_ + 1) % capacity_;
+        producer_ptr_ = (producer_ptr_ + 1) & (capacity_ - 1);
         count_.fetch_add(1, std::memory_order_release);
         return true;
     }
@@ -21,13 +22,13 @@ class RingBuffer {
     bool pop(Message& out) {
         if (count_.load(std::memory_order_acquire) == 0) return false;
         out = buf_[consumer_ptr_];
-        consumer_ptr_ = (consumer_ptr_+ 1) % capacity_;
-        count_.fetch_add(-1, std::memory_order_release);
+        consumer_ptr_ = (consumer_ptr_+ 1) & (capacity_ - 1);
+        count_.fetch_add(-1, std::memory_order_relaxed);
         return true;
     }
 
     size_t size() const {
-        return count_.load(std::memory_order_relaxed);
+        return count_.load(std::memory_order_acquire);
     }
 
     private:
