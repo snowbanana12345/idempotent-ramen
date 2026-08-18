@@ -31,7 +31,7 @@ namespace hftu {
             ~OrderBook() = default;
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
-                if (side){
+                if (!side){
                     auto [it, inserted] = bid_orders_.emplace(id, price);
                     bids_.insert_unique(it->second);
                 }
@@ -58,6 +58,7 @@ namespace hftu {
 
             int64_t best_bid() const {
                 if (bids_.empty()) return 0;
+                std::cout << "bid is not empty" << std::endl;
                 return bids_.rbegin()->get_price();
             }
 
