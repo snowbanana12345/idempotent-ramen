@@ -9,5 +9,5 @@ Just some notes on set up for C++
 
 Results are similar
 Bst implementation: cycles_per_op : 100
-Heap implementation: cycles_per_op : 26
+Heap implementation: cycles_per_op : ~23.5 (deviates by ~0.3 between repeated runs)
 Set implementation: cycles_per_op : 15400 (Oh, my ramen)
