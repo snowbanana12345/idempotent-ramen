@@ -1,6 +1,5 @@
-#include "solution.h"
-#include <unordered_set>
-#include <queue>
+#include "base.h"
+
 
 namespace hftu {
     struct Order {
@@ -16,13 +15,12 @@ namespace hftu {
         bool operator()(const Order &a, const Order &b) { return a.price < b.price; };
     };
 
-    class Impl{
+    class OrderBook{
         public:
-            Impl(){
+            OrderBook() = default;
+            ~OrderBook() = default;
 
-            }
-
-            inline void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
+            void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
                 orders_.insert(id);
                 if (side){ //asks
                     asks_.push({price, id});
@@ -32,7 +30,7 @@ namespace hftu {
                 }
             }
 
-            inline void cancel_order(uint64_t id){
+            void cancel_order(uint64_t id){
                 orders_.erase(id);
 
                 while (!asks_.empty() && orders_.find(asks_.top().id) == orders_.end()){
@@ -44,12 +42,12 @@ namespace hftu {
                 }
             }
 
-            inline int64_t best_bid() const {
+            int64_t best_bid() const {
                 if (bids_.empty()) return 0;
                 return bids_.top().price;
             }
 
-            inline int64_t best_ask() const{
+            int64_t best_ask() const{
                 if (asks_.empty()) return 0;
                 return asks_.top().price;
             }
@@ -59,29 +57,4 @@ namespace hftu {
             std::priority_queue<Order, std::vector<Order>, Descending> bids_;
             std::priority_queue<Order, std::vector<Order>, Ascending> asks_;            
     };
-
-
-    void OrderBook::add_order(uint64_t id, int side, int64_t price, int64_t quantity) {
-        this->impl->add_order(id, side, price, quantity);
-    }
-
-    void OrderBook::cancel_order(uint64_t id) {
-        this->impl->cancel_order(id);
-    }
-
-    int64_t OrderBook::best_bid() const {
-        return this->impl->best_bid();
-    }
-
-    int64_t OrderBook::best_ask() const {
-        return this->impl->best_ask();
-    }   
-
-    OrderBook::OrderBook(){
-        this->impl = new Impl();
-    }
-
-    OrderBook::~OrderBook(){
-        delete this->impl;   
-    }
 } 

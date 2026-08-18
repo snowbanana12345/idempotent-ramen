@@ -1,13 +1,12 @@
-#include "solution.h"
+#include "base.h"
 #include <unordered_map>
 #include <algorithm>
 
 namespace hftu {
-    class Impl{
+    class OrderBook{
         public:
-            Impl(){
-
-            }
+            OrderBook() = default;
+            ~OrderBook() = default;
 
             inline void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
                 bids_.insert({id, price});
@@ -47,29 +46,4 @@ namespace hftu {
             std::unordered_map<uint64_t, int64_t> bids_;
             std::unordered_map<uint64_t, int64_t> asks_;          
     };
-
-
-    void OrderBook::add_order(uint64_t id, int side, int64_t price, int64_t quantity) {
-        this->impl->add_order(id, side, price, quantity);
-    }
-
-    void OrderBook::cancel_order(uint64_t id) {
-        this->impl->cancel_order(id);
-    }
-
-    int64_t OrderBook::best_bid() const {
-        return this->impl->best_bid();
-    }
-
-    int64_t OrderBook::best_ask() const {
-        return this->impl->best_ask();
-    }   
-
-    OrderBook::OrderBook(){
-        this->impl = new Impl();
-    }
-
-    OrderBook::~OrderBook(){
-        delete this->impl;   
-    }
 } 
