@@ -2,7 +2,7 @@
 For implementation, see source code itself.
 
 ## STL containers ##
-std::map - cycles_per_op : ~100-105 cycles
+std::map + std::unordered_map - cycles_per_op : ~100-105 cycles
 std::priority_queue + std::unordered_map - cycles_per_op : ~23.5 (deviates by ~0.3 between repeated runs)
 std::unordered_set - cycles_per_op : 15400 (Oh, my ramen)
 
