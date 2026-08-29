@@ -5,14 +5,10 @@
 namespace hftu {
     class Level : public boost::intrusive::set_base_hook<boost::intrusive::optimize_size<true> >
     {
-    int64_t price_;
-
     public:
-        boost::intrusive::set_member_hook<> member_hook_;
+        Level() = default;
+        Level(int64_t price) : price_(price) {};
 
-        Level(int64_t price)
-            :  price_(price)
-            {}
         friend bool operator< (const Level &a, const Level &b)
             {  return a.price_ < b.price_;  }
         friend bool operator> (const Level &a, const Level &b)
@@ -20,59 +16,78 @@ namespace hftu {
         friend bool operator== (const Level &a, const Level &b)
             {  return a.price_ == b.price_;  }
 
-        int64_t get_price() const{
-            return price_;
-        }
+        int64_t price_;
+        size_t count_;
     };
+
+    struct Order{
+        int64_t price;
+        int side;
+    };
+
+    constexpr uint32_t EXPECTED_SIZE = 1'000'000;
 
     class OrderBook{
         public:
-            OrderBook() = default;
+            OrderBook() {
+                orders_.reserve(1'000'000);
+                for (int i = 0; i < EXPECTED_SIZE; i++){
+                    level_pool.push_back(new Level());
+                }
+            }
             ~OrderBook() = default;
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
-                if (!side){
-                    auto [it, inserted] = bid_orders_.emplace(id, price);
-                    bids_.insert_unique(it->second);
+                boost::intrusive::rbtree<Level>& tree_ = side ? asks_ : bids_;
+
+                orders_.emplace(id, Order{price, side});
+                Level key(price);
+                auto it = tree_.find(key);
+                if (it != tree_.end()) {
+                    it->count_++;
                 }
                 else {
-                    auto [it, inserted] =  ask_orders_.emplace(id, price);
-                    asks_.insert_unique(it->second);
+                    Level* new_level = level_pool.back();
+                    level_pool.pop_back();
+                    new_level->price_ = price;
+                    new_level->count_ = 1;
+                    tree_.insert_unique(*new_level);
                 }
             }
 
             void cancel_order(uint64_t id){
-                auto bid_it = bid_orders_.find(id);
-                if (bid_it != bid_orders_.end()){
-                    bids_.erase(bid_it->second); // remove reference from tree
-                    bid_orders_.erase(bid_it); 
-                    return;
-                }
-                auto ask_it = ask_orders_.find(id);
-                if (ask_it != ask_orders_.end()){
-                    asks_.erase(ask_it->second); // remove reference from tree
-                    ask_orders_.erase(ask_it); 
-                    return;
+                auto oit = orders_.find(id);
+                if (oit == orders_.end()) return;
+
+                int64_t price = oit->second.price;
+                int side = oit->second.side;
+
+                orders_.erase(oit);
+               
+                boost::intrusive::rbtree<Level>& tree_ = side ? asks_ : bids_;
+                Level key(price);
+                auto it = tree_.find(key);
+                it->count_--;
+                if (it->count_ == 0){
+                    Level* level_ptr = &*it;  // Dereference iterator, then take address
+                    level_pool.push_back(level_ptr); // return level back to pool
+                    tree_.erase(it); // drop the pointer from tree;
                 }
             }
 
             int64_t best_bid() const {
                 if (bids_.empty()) return 0;
-                std::cout << "bid is not empty" << std::endl;
-                return bids_.rbegin()->get_price();
+                return bids_.rbegin()->price_;
             }
 
             int64_t best_ask() const{
                 if (asks_.empty()) return 0;
-                return asks_.begin()->get_price();
+                return asks_.begin()->price_;
             }
 
         private: 
-            // maps hold ownership of the Level objects
-            std::unordered_map<uint64_t, Level> ask_orders_; 
-            std::unordered_map<uint64_t, Level> bid_orders_;
-
-            // intrusive trees just hold references to objects
+            std::unordered_map<uint64_t, Order> orders_;
+            std::vector<Level*> level_pool;
             boost::intrusive::rbtree<Level> asks_;
             boost::intrusive::rbtree<Level> bids_;
     };

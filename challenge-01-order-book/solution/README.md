@@ -1,13 +1,18 @@
-##
-Main article is in the rust version of the challenge
+## Summary of results ##
+For implementation, see source code itself.
 
-Just some notes on set up for C++
-- avoided declaring OrderBook in Solution.h as virtual as its not 0 cost
-- Use cmake to link benchmark.cpp to various implementations
-- unittesting work the same way.
-- build seperate binaries with each implementation against the same unittest file.
+## STL containers ##
+std::map - cycles_per_op : ~100-105 cycles
+std::priority_queue + std::unordered_map - cycles_per_op : ~23.5 (deviates by ~0.3 between repeated runs)
+std::unordered_set - cycles_per_op : 15400 (Oh, my ramen)
 
-Results are similar
-Bst implementation: cycles_per_op : 100
-Heap implementation: cycles_per_op : ~23.5 (deviates by ~0.3 between repeated runs)
-Set implementation: cycles_per_op : 15400 (Oh, my ramen)
+~ Comments ~
+std::map - binary tree with nodes. O(log n) performance. Not cache friendly due to random access
+std::priority_queue + std::undered_map - performs better because it make use of the requirement that only the top of book is needed
+std::unodered_set - linear scan with random access to compute best price kills performance completely
+
+## Boost containers ##
+boost::intrusive::rbtree + std::vector object pool - ~95-96 cycles / op
+
+~ Comments ~
+boost::intrusive::rbtree - exact same algorithm as std::map, just slightly faster due to reusing pre-allocated level objects
