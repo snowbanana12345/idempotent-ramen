@@ -87,7 +87,7 @@ namespace hftu {
 
         private: 
             std::unordered_map<uint64_t, Order> orders_;
-            std::vector<Level*> level_pool;
+            boost::object_pool<Order> pool;
             boost::intrusive::rbtree<Level> asks_;
             boost::intrusive::rbtree<Level> bids_;
     };
