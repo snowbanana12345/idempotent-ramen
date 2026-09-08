@@ -3,7 +3,7 @@
 
 
 namespace hftu {
-    class Order : public boost::intrusive::bs_set_base_hook<> //This is a base hook
+    class Order : public boost::intrusive::bs_set_base_hook<> 
     {
         public:
             boost::intrusive::bs_set_member_hook<> member_hook_;
@@ -19,10 +19,16 @@ namespace hftu {
                 {  return a.order_id_ > b.order_id_;  }
     };
 
+    struct OrderLess {
+        bool operator()(const Order& a, const Order& b) const {
+            return a.order_id_ < b.order_id_;
+        }
+    };
+
     struct Descending {
         using type = int64_t;
         type operator()(const Order& o) {
-            return o.price_;
+            return - o.price_;
         }
     };
 
@@ -35,8 +41,8 @@ namespace hftu {
 
     constexpr uint32_t EXPECTED_SIZE = 1'000'000;
 
-    using TreapBid = boost::intrusive::treap_set<Order, boost::intrusive::compare<std::greater<Order>>, boost::intrusive::priority_of_value<Descending>>;
-    using TreapAsk = boost::intrusive::treap_set<Order, boost::intrusive::compare<std::greater<Order>>, boost::intrusive::priority_of_value<Ascending>>;
+    using TreapBid = boost::intrusive::treap_set<Order, boost::intrusive::compare<OrderLess>, boost::intrusive::priority_of_value<Descending>>;
+    using TreapAsk = boost::intrusive::treap_set<Order, boost::intrusive::compare<OrderLess>, boost::intrusive::priority_of_value<Ascending>>;
 
     class OrderBook{
         public:
@@ -50,19 +56,17 @@ namespace hftu {
             ~OrderBook() = default;
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
-                
                 Order* new_order = pool_.back();
                 pool_.pop_back();
                 new_order->order_id_ = id;
                 new_order->price_ = price;
 
                 if (side){
-                    bids_.insert(*new_order);
-                }
-                else{
                     asks_.insert(*new_order);
                 }
-                
+                else{
+                    bids_.insert(*new_order);
+                }
             }
 
             void cancel_order(uint64_t id){

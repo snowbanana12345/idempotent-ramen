@@ -12,7 +12,10 @@ std::priority_queue + std::undered_map - performs better because it make use of 
 std::unodered_set - linear scan with random access to compute best price kills performance completely
 
 ## Boost containers ##
-boost::intrusive::rbtree + std::vector object pool - ~95-96 cycles / op
+
+boost::intrusive::rbtree - ~95-96 cycles / op
+boost::intrusive::treap - ~47 cycles / op 
 
 ~ Comments ~
+Every implementation uses std::vector<Order> as an object pool 
 boost::intrusive::rbtree - exact same algorithm as std::map, just slightly faster due to reusing pre-allocated level objects
