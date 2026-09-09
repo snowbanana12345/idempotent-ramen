@@ -3,6 +3,18 @@
 #include <algorithm>
 
 namespace hftu {
+    /*
+    hashmap based implementation of order book
+
+    add_order(): O(1)
+    cancel_order(): O(1)
+    best_bid(): O(n)
+    best_ask(): O(n)
+
+    The performance is very poor. At 1 million elements,
+    linear scans are not viable at all.
+
+    */
     class OrderBook{
         public:
             OrderBook() = default;

@@ -3,6 +3,17 @@
 
 
 namespace hftu {
+    /*
+    boost intrusive Red black tree implementation.
+    It's more efficient than STL map, as we use a memory pool to minimize dynamic allocations
+
+    add_order(): O(log n)
+    cancel_order(): O(log n)
+    best_bid(): O(log n)
+    best_ask(): O(log n)
+
+    */
+
     class Level : public boost::intrusive::set_base_hook<boost::intrusive::optimize_size<true> >
     {
     public:

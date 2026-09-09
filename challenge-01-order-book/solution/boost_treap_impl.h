@@ -3,6 +3,19 @@
 
 
 namespace hftu {
+    /*
+    A treap is a data structure that combines properties of a binary search tree and a heap.
+    id is the key, price is the priority.
+    cancel order sorts the order by id to find the order in O(log n) time
+    the root always has the best bid/ask price, so best_bid() and best_ask() are O(1)
+
+    add_order(): O(log n)
+    cancel_order(): O(log n)
+    best_bid(): O(1)
+    best_ask(): O(1)
+    */
+
+
     class Order : public boost::intrusive::bs_set_base_hook<> 
     {
         public:

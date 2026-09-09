@@ -4,6 +4,18 @@
 #include <unordered_set>
 
 namespace hftu{
+    /* 
+    priority_queue implemented using a d-ary heap
+    it's more effcient as it reduce the number of random access during bubble up/down operations
+    Selecting the best amongst children is cache friendly. 
+    16 * 8 children = 128 bytes can fit into exactly two cache lines
+
+    add_order() O(log n)
+    cancel_order() O(1)
+    best_bid() O(log n) 
+    best_ask() O(log n) 
+    */
+
     struct Order {
         uint64_t id;
         int64_t price;
@@ -16,6 +28,8 @@ namespace hftu{
             return a.price > b.price; 
         }
     };
+
+
 
     class OrderBook {
     public:

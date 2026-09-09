@@ -1,6 +1,18 @@
 #include "base.h"
 
 namespace hftu {
+    /*
+    performance is reasonable. nodal structures are not cache friendly 
+    each traversal is random memory access
+
+    red-black tree based implementation of order book
+    add_order(): O(log n)
+    cancel_order(): O(log n)
+    best_bid(): O(log n)
+    best_ask(): O(log n)
+    
+    */
+
     struct Order {
         int side;
         int64_t price;

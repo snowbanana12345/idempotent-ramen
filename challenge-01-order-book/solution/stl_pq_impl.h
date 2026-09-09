@@ -2,6 +2,19 @@
 
 
 namespace hftu {
+    /*
+    a priority_queue tracks the best bid/ask
+    hash map tracks the active orders
+
+    add_order():O(log n) 
+    cancel_order(): O(1)
+    best_bid(): O(log n)
+    best_ask(): O(log n)
+
+    disclaimber : this solution works very well on the workload.
+    But is a scenario where a lot of invalidated orders pile up in the pq, leading to infinity memory usage
+    */
+
     struct Order {
         int64_t price;
         uint64_t id;
@@ -19,9 +32,7 @@ namespace hftu {
             ~OrderBook() = default;
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
-                // O(log n) insertion into priority_queue
-                // O(1) insertion into unordered_set
-                // unordered_set source of truth, the priority_queue can contain cancelled orders
+
                 orders_.insert(id);
                 int sign = -1 + 2 * side; 
                 books_[side].emplace(sign * price, id);
