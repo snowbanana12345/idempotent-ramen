@@ -2,6 +2,17 @@ use crate::types::OrderBook;
 use std::collections::{BTreeMap, HashMap};
 
 
+/*
+
+Default implementation provided. 
+
+add_order(id, side, price, quantity): log(n)
+cancel_order(id): log(n)
+best_bid(): log(n)
+best_ask(): log(n)
+
+*/
+
 pub struct BTreeOb {
     orders: HashMap<u64, Order>,
     bids: BTreeMap<i64, i64>,  // price -> total qty (descending via Reverse)

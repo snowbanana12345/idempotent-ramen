@@ -7,16 +7,17 @@ mod types;
 mod solution;
 #[path = "../solution/ut.rs"]
 mod ut;
-#[path = "../solution/bts_impl.rs"]
-mod bts_impl;
+#[path = "../solution/stl_btree_impl.rs"]
+mod stl_btree_impl;
+#[path = "../solution/stl_btree_impl_2.rs"]
+mod stl_btree_impl_2;
 #[path = "../solution/vec_impl.rs"]
 mod vec_impl;
-#[path = "../solution/op_bst_impl.rs"]
-mod op_bts_impl;
-#[path = "../solution/heap_impl.rs"]
-mod heap_impl;
-#[path = "../solution/set_impl.rs"]
-mod set_impl;
+
+#[path = "../solution/stl_binary_heap_impl.rs"]
+mod stl_binary_heap_impl;
+#[path = "../solution/fx_hash_map_impl.rs"]
+mod fx_hash_map_impl;
 
 
 use hftu_bench::{self, black_box, clobber, cycle_start, cycle_end};

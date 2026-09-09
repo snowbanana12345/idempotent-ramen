@@ -18,6 +18,7 @@ For each challenge
 - removing a branch saves << 5 cycles avereage at the very most
 - std::list is b**ls
 - std::vector with pointer performs better than boost::object_pool but has object lifetime hazard
+- FxHash in rust is more efficient but lower security which is not needed here
 
 # Issue of 1 million elements
 
