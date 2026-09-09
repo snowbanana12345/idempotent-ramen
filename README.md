@@ -1,46 +1,29 @@
-# HFT University — C++ Microbenchmark Challenges
+# Introduction
 
-High-performance C++ coding challenges with certified benchmark results.
+Solutions to micro optimiation problems posed by HFTU in both C++ and Rust. This is not an answer key. 
+This is a research journal. It contains bad solutions and very very bad solutions that might set your CPU on fire.
+Always measure, a brillant idea is probablely wrong.
 
-## How It Works
+# Layout
 
-1. **Subscribe** at [hftuniversity.com](https://hftuniversity.com/pricing) ($5/month)
-2. **Create a private repo** and copy this template into it:
-   ```bash
-   git clone https://github.com/Vitorian/hft-challenges.git my-challenges
-   cd my-challenges
-   git remote set-url origin git@github.com:YOUR_USER/my-challenges.git
-   git push -u origin main
-   ```
-3. **Set up** your repo at [hftuniversity.com/challenges/setup](https://hftuniversity.com/challenges/setup)
-4. **Solve** challenges by editing files in each challenge's `solution/` directory
-5. **Test locally** using CMake + Google Benchmark
-6. **Submit** on the challenge page — our server builds and benchmarks your code on controlled hardware
+For each challenge
+- RESULT.md contains a summary of the various implementations and their final result along with a brief discussion
+- solution folder contains actual implementations
+- explanations how the implementations work is in the implementation
 
-## Building Locally
 
-Requirements: GCC 13+ or Clang 17+, CMake 3.20+, Google Benchmark
+# General notes on optimization
 
-```bash
-cd challenge-01-order-book
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-./build/benchmark
-```
+- sequential access is very fast
+- removing a branch saves << 5 cycles avereage at the very most
+- std::list is b**ls
+- std::vector with pointer performs better than boost::object_pool but has object lifetime hazard
 
-## Rules
+# Issue of 1 million elements
 
-- Edit **only** files inside `solution/` directories
-- Your code must compile with `-std=c++20 -O2`
-- No inline assembly, no compiler-specific intrinsics (unless stated otherwise)
-- [Pre-installed libraries](https://hftuniversity.com/challenges/libraries) (Boost, Abseil, TBB, etc.) are available — see the full list on the website
-- Time limit and memory limit are per-challenge (see each challenge's README)
-
-## Getting New Challenges
-
-When new challenges are published, pull from upstream:
-
-```bash
-git remote add upstream https://github.com/Vitorian/hft-challenges.git
-git pull upstream main
-```
+- does not fit into the L1 cache
+- does not fully fit into the l2 cache 
+- fits into L3 cache
+- A random hashmap access likely involves pulling from L3 cache
+- big O notation matters at this size
+- binary tree outperforms linear scan despite the latter being cache friendly

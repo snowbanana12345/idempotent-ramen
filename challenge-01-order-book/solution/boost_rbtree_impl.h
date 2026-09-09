@@ -30,7 +30,8 @@ namespace hftu {
     class OrderBook{
         public:
             OrderBook() {
-                orders_.reserve(1'000'000);
+                orders_.reserve(EXPECTED_SIZE);
+                level_pool.reserve(EXPECTED_SIZE);
                 for (int i = 0; i < EXPECTED_SIZE; i++){
                     level_pool.push_back(new Level());
                 }
@@ -87,7 +88,7 @@ namespace hftu {
 
         private: 
             std::unordered_map<uint64_t, Order> orders_;
-            boost::object_pool<Order> pool;
+            std::vector<Level*> level_pool;
             boost::intrusive::rbtree<Level> asks_;
             boost::intrusive::rbtree<Level> bids_;
     };

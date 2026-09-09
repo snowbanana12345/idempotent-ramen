@@ -20,7 +20,7 @@ boost::intrusive::treap - ~47
 boost::heap::d_ary_heap + std::unordered_set - ~19.5 
 
 ### Intuition ###
-Every implementation uses std::vector<Order> as an object pool 
+Every implementation uses std::vector as an object pool 
 
 boost::intrusive::rbtree - exact same algorithm as std::map, just slightly faster due to reusing pre-allocated level objects
 

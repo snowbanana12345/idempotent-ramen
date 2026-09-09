@@ -9,16 +9,23 @@ namespace hftu {
             ~OrderBook() = default;
 
             inline void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
-                bids_.insert({id, price});
-                asks_.insert({id, price});
+                // O(1) insertion into unordered_map
+                if (side){
+                    asks_.emplace(id, price);
+                }
+                else {
+                    bids_.emplace(id, price);
+                }
             }
 
             inline void cancel_order(uint64_t id){
+                // O(1) deletion from unordered_map
                 bids_.erase(id);
                 asks_.erase(id);
             }
 
             inline int64_t best_bid() const {
+                // Full linear scan to find the maximum bid price
                 if (bids_.empty()) return 0;
                 auto max_it = std::max_element(
                     bids_.begin(), 
@@ -31,15 +38,16 @@ namespace hftu {
             }
 
             inline int64_t best_ask() const{
+                // Full linear scan to find the minimum ask price
                 if (asks_.empty()) return 0;
-                auto max_it = std::min_element(
+                auto min_it = std::min_element(
                     asks_.begin(), 
                     asks_.end(),
                     [](const auto& a, const auto& b) {
                         return a.second < b.second;
                     }
                 );
-                return max_it->second;
+                return min_it->second;
             }
 
         private: 

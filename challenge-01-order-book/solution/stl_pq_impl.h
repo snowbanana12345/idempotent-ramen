@@ -19,16 +19,22 @@ namespace hftu {
             ~OrderBook() = default;
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
+                // O(log n) insertion into priority_queue
+                // O(1) insertion into unordered_set
+                // unordered_set source of truth, the priority_queue can contain cancelled orders
                 orders_.insert(id);
                 int sign = -1 + 2 * side; 
                 books_[side].emplace(sign * price, id);
             }
 
             void cancel_order(uint64_t id){
+                // O(1) deletion from unordered_set
+                // priority_queues still contains the stale data
                 orders_.erase(id);
             }
 
             int64_t best_bid() const {
+                // O(log n) to pop stale data from priority_queue before returning the best bid price
                 while (!books_[0].empty() && orders_.find(books_[0].top().id) == orders_.end()){
                     books_[0].pop();
                 }
@@ -37,6 +43,7 @@ namespace hftu {
             }
 
             int64_t best_ask() const{
+                // O(log n) to pop stale data from priority_queue before returning the best ask price
                 while (!books_[1].empty() && orders_.find(books_[1].top().id) == orders_.end()){
                     books_[1].pop();
                 }
