@@ -98,7 +98,6 @@ namespace hftu{
                 uint32_t fired_count = 0;
                 for (uint32_t i = 0; i < MICRO_SLOTS; ++i) {
                     int64_t slot_time_us = m_curr_time_us + i;
-                    std::cout << m_slot_ptr << " " << slot_time_us << " " << i << " " << m_curr_time_us << std::endl;
                     
                     for (uint32_t j = 0; j < m_inner_ptrs[m_slot_ptr]; ++j) {
                         uint64_t event_id = m_slots[m_slot_ptr][j];

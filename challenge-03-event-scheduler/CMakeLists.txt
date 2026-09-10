@@ -4,11 +4,22 @@ include(FetchContent)
 
 add_executable(benchmark benchmark.cpp)
 
+
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
     include(${CMAKE_CURRENT_SOURCE_DIR}/../common/challenge.cmake)
 elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/common/challenge.cmake)
     include(${CMAKE_CURRENT_SOURCE_DIR}/common/challenge.cmake)
 endif()
+
+
+add_executable(profile profile.cpp)
+target_include_directories(profile PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/solution
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+)
+
 
 FetchContent_Declare(
   googletest
