@@ -20,6 +20,11 @@ uses priority_queue as a base but break up into near,mid,far
 only near is only accessed during advance, storing all in the same priority_queue
 forces us to manage far out events to maintain the data structure invariants which costs performance.
 
+## Two sloted heaps
+see files : two_slot_heap_impl.h, slot_heap.h
+cycles_per_op : 250
+No difference between near,mid,far and hot,cold
+
 ## NanoBucket
 see files : nano_bucket_impl.h nano_bucket.h slot_heap.h
 cycles_per_op : 168
@@ -28,3 +33,11 @@ goal is go optimize P99. P99 is caused by large advances triggering many events.
 Fastest way to do batch process is if data is already stored in sorted array.
 reuse the slot_heap implementation for cold_bucket.
 
+Promising performance, but not production viable.
+The expanding vectors will degrade performance as they expand, polluting the cache.
+
+## LinkedNanoBucket
+see files : linked_nano_bucket_impl.h linked_nano_bucket.h slot_heap.h
+cycles_per_op : 168
+
+production viable version of previous implementation. Using list segments 
