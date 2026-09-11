@@ -1,4 +1,7 @@
 build/
 
+# not sure why this appears in visual studio
+.DS_Store
+
 # Rust build artifacts
 **/target/

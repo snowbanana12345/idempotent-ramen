@@ -5,6 +5,20 @@ mod types;
 
 #[path = "../solution/mod.rs"]
 mod solution;
+#[path = "../solution/ut.rs"]
+mod ut;
+#[path = "../solution/stl_btree_impl.rs"]
+mod stl_btree_impl;
+#[path = "../solution/stl_btree_impl_2.rs"]
+mod stl_btree_impl_2;
+#[path = "../solution/vec_impl.rs"]
+mod vec_impl;
+
+#[path = "../solution/stl_binary_heap_impl.rs"]
+mod stl_binary_heap_impl;
+#[path = "../solution/fx_hash_map_impl.rs"]
+mod fx_hash_map_impl;
+
 
 use hftu_bench::{self, black_box, clobber, cycle_start, cycle_end};
 use types::OrderBook;

@@ -13,14 +13,19 @@ target_include_directories(benchmark PRIVATE
 )
 
 # Boost (header-only — intrusive containers, flat_map, etc.)
+# export CPATH="/opt/homebrew/include" have to type this line into MAC terminal for make to work
 find_package(Boost QUIET)
 if(Boost_FOUND)
+    message(STATUS ">>> Boost FOUND! Include dirs: ${Boost_INCLUDE_DIRS}")
     target_link_libraries(benchmark Boost::boost)
+else()
+    message(STATUS ">>> Boost FOUND! Include dirs: ${Boost_INCLUDE_DIRS}")
 endif()
 
 # Abseil (flat_hash_map, btree, etc.)
 find_package(absl QUIET)
 if(absl_FOUND)
+    message(STATUS ">>> Absl FOUND! Include dirs: ${Boost_INCLUDE_DIRS}")
     target_link_libraries(benchmark
         absl::flat_hash_map absl::node_hash_map
         absl::btree absl::hash absl::strings)

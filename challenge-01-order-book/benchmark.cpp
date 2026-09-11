@@ -4,8 +4,6 @@
 #include "common/benchmark_harness.h"
 #include "solution/solution.h"
 
-#include <vector>
-
 namespace {
 
 struct Operation {
