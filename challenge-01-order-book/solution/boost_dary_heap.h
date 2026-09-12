@@ -30,20 +30,19 @@ namespace hftu{
     };
 
 
-
     class OrderBook {
     public:
         using Heap = boost::heap::d_ary_heap<Order, boost::heap::arity<64>, boost::heap::compare<Comp>, boost::heap::mutable_<false>>;
 
         OrderBook() = default;
 
-        void add_order(int64_t id, int side, double price, int64_t qty) {
+        void add_order(uint64_t id, int side, int64_t price, int64_t qty) {
             orders_.insert(id);
             int sign = -1 + 2 * side;
             books_[side].emplace(sign * price, id);
         }
 
-        void cancel_order(int64_t id) {
+        void cancel_order(uint64_t id) {
             orders_.erase(id);
         }
 

@@ -35,14 +35,14 @@ namespace hftu{
 
         OrderBook() = default;
 
-        void add_order(int64_t id, int side, double price, int64_t qty) {
+        void add_order(uint64_t id, int side, int64_t price, int64_t qty) {
             
             int sign = -1 + 2 * side;
             Heap::handle_type handle = books_[side].push(Order(sign * price, id));
             orders_.emplace(id, Entry{handle, side});
         }
 
-        void cancel_order(int64_t id) {
+        void cancel_order(uint64_t id) {
             auto it = orders_.find(id);
             if (it != orders_.end()) {
                 books_[it->second.side].erase(it->second.handle);

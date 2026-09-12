@@ -15,7 +15,6 @@ namespace hftu {
     best_ask(): O(1)
     */
 
-
     class Order : public boost::intrusive::bs_set_base_hook<> 
     {
         public:
