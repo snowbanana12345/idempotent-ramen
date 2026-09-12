@@ -3,7 +3,7 @@
 
 using namespace hftu;
 
-TEST(StringMap, InsertAndFind) {
+TEST(StringMap, InsertFour) {
     StringMap sm;
     sm.insert("key1", 4, 42);
     sm.insert("key2", 4, 84);
