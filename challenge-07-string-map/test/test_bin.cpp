@@ -38,6 +38,40 @@ TEST(StringMap, InsertSizeOne) {
     EXPECT_EQ(value3, nullptr);
 }
 
+TEST(StringMap, InsertSizeTwo) {
+    StringMap sm;
+    sm.insert("ab", 2, 42);
+    sm.insert("cd", 2, 84);
+
+    const uint32_t* value1 = sm.find("ab", 2);
+    ASSERT_NE(value1, nullptr);
+    EXPECT_EQ(*value1, 42);
+
+    const uint32_t* value2 = sm.find("cd", 2);
+    ASSERT_NE(value2, nullptr);
+    EXPECT_EQ(*value2, 84);
+
+    const uint32_t* value3 = sm.find("ef", 2);
+    EXPECT_EQ(value3, nullptr);
+}
+
+TEST(StringMap, InsertSizeThree) {
+    StringMap sm;
+    sm.insert("abc", 3, 42);
+    sm.insert("def", 3, 84);
+
+    const uint32_t* value1 = sm.find("abc", 3);
+    ASSERT_NE(value1, nullptr);
+    EXPECT_EQ(*value1, 42);
+
+    const uint32_t* value2 = sm.find("def", 3);
+    ASSERT_NE(value2, nullptr);
+    EXPECT_EQ(*value2, 84);
+
+    const uint32_t* value3 = sm.find("ghi", 3);
+    EXPECT_EQ(value3, nullptr);
+}
+
 TEST(StringMap, InsertSizeSixTeen) {
     StringMap sm;
     sm.insert("whatiztententenc", 16, 57);

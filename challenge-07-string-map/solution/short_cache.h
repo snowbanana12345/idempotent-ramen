@@ -22,9 +22,6 @@ static size_t idx3(const char* k) {
 
 class StringMap {
 public:
-
-
-
     StringMap(){
         std::fill(std::begin(one_value), std::end(one_value), nullptr);
         std::fill(std::begin(two_value), std::end(two_value), nullptr);
