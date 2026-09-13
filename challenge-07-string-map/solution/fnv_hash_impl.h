@@ -2,6 +2,7 @@
 #include "base.h"
 
 #include <unordered_map>
+#include <iostream>
 
 namespace hftu {
 
@@ -37,7 +38,12 @@ struct StringKeyEq {
 
 class StringMap {
 public:
-    StringMap() = default;
+    StringMap(){
+        map_.reserve(256);
+        for (int i = 2; i < 17; i++){
+            map_.reserve(1024 * 1024);
+        }
+    }
     ~StringMap() = default;
 
     void insert(const char* key, size_t key_len, uint32_t value){
