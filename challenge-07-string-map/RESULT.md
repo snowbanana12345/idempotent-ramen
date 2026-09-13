@@ -22,3 +22,10 @@ use FNV hash as hash function
 cycles_per_op: 28.0 (local)
 boost::hash_range does roughly the same thing just slightly less efficient.
 
+## Putting it togther ## 
+
+cycles_per_op: 17 (local)
+cycles_per_op : 190 (submission)
+
+short two character strings goes into array
+longer strings goes into unordered_map
