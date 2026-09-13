@@ -23,7 +23,6 @@ static size_t idx3(const char* k) {
 class StringMap {
 public:
     StringMap(){
-        std::fill(std::begin(short_buf_), std::end(short_buf_), nullptr);
         map_.reserve(1024 * 1024);
     }
 
@@ -33,7 +32,8 @@ public:
         if (key_len < 3){
             size_t len_offset = key_len > 1 ? 256 : 0;
             size_t idx = len_offset + (key_len > 1 ? idx2(key) : idx1(key));
-            short_buf_[idx] = new uint32_t(value);
+            short_ptr_[idx] = short_buf_ + alloc_idx_++;
+            *short_ptr_[idx] = value;
         }
         else {
             map_.emplace(std::string(key, key_len), value);
@@ -44,7 +44,7 @@ public:
         if (key_len < 3){
             size_t len_offset = key_len > 1 ? 256 : 0;
             size_t idx = len_offset + (key_len > 1 ? idx2(key) : idx1(key));
-            return short_buf_[idx];
+            return short_ptr_[idx];
         }
         else {
             auto it = map_.find(std::string(key, key_len));
@@ -54,7 +54,9 @@ public:
     }
     
 private:
-    uint32_t* short_buf_[256 * 256];
+    uint32_t* short_ptr_[256 * 256];
+    uint32_t* short_buf_ = new uint32_t[256 * 256]();
+    size_t alloc_idx_ = 0;
     std::unordered_map<std::string, uint32_t> map_;
 };
 }

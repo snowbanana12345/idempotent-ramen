@@ -6,10 +6,9 @@ cycles_per_op : 387 (submission)
 
 ## store short strings ##
 
-cycles_per_op : 20.5 (local)
+cycles_per_op : 18.4 (local)
 Stores two character strings in array that does not require string hashing
 Storing three character strings does not making it faster.
-
 
 ## FNV hash ##
 
