@@ -20,6 +20,16 @@ TEST(StringMap, InsertFour) {
     EXPECT_EQ(value3, nullptr);
 }
 
+TEST(StringMap, TestTwoBoundary){
+    StringMap sm;
+    std::string key = std::string(1, char(255)) + std::string(1, char(255));
+    sm.insert(key.c_str(), 2, 42);
+
+    const uint32_t* value1 = sm.find(key.c_str(), 2);
+    ASSERT_NE(value1, nullptr);
+    EXPECT_EQ(*value1, 42);
+}
+
 
 TEST(StringMap, InsertSizeOne) {
     StringMap sm;

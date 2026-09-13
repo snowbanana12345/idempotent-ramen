@@ -2,17 +2,16 @@
 #include "base.h"
 
 #include <unordered_map>
+#include <boost/functional/hash.hpp>
 
 namespace hftu {
 
-uint64_t hash_key(const char* key, size_t key_len) {
-    uint64_t h = 1469598103934665603ull;        // FNV offset basis
-    for (size_t i = 0; i < key_len; ++i) {
-        h ^= static_cast<uint8_t>(key[i]);
-        h *= 1099511628211ull;                  // FNV prime
-    }
-    return h;
+std::size_t hash_key(const char* s, std::size_t key_len) {
+    std::size_t seed = 0;
+    boost::hash_range(seed, s, s + key_len);
+    return seed;
 }
+
 
 class StringMap {
 public:
@@ -30,6 +29,6 @@ public:
     }
     
 private:
-    std::unordered_map<uint64_t, uint32_t> map_;
+    std::unordered_map<int, uint32_t> map_;
 };
 }
