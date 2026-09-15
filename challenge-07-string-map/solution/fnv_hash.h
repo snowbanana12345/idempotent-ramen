@@ -36,12 +36,25 @@ uint64_t hash_key(const char* key, size_t key_len) {
     return h;
 }
 
+uint64_t hash_key_8(const char* key, size_t key_len) {   
+    uint64_t seg_1 = key_len > 0 ? static_cast<uint8_t>(key[0]) : 0;
+    seg_1 += key_len > 1 ? static_cast<uint8_t>(key[1]) << 8 : 0;
+    seg_1 += key_len > 2 ? static_cast<uint8_t>(key[2]) << 16 : 0;
+    seg_1 += key_len > 3 ? static_cast<uint8_t>(key[3]) << 24 : 0;
+
+    uint64_t seg_2 = key_len > 4 ? static_cast<uint8_t>(key[4]) : 0;
+    seg_2 += key_len > 5 ? static_cast<uint8_t>(key[5]) << 8 : 0;
+    seg_2 += key_len > 6 ? static_cast<uint8_t>(key[6]) << 16 : 0;
+    seg_2 += key_len > 7 ? static_cast<uint8_t>(key[7]) << 24 : 0;
+
+    return seg_1 * h_mult ^ seg_2;
+}
+
 struct StringKey {
     const char* data;
     uint32_t    len;
 
     StringKey(const char* d, uint32_t l) : data(d), len(l) {}
-    explicit StringKey(const char* d) : data(d), len(static_cast<uint32_t>(std::strlen(d))) {}
 };
 
 struct StringKeyHash {

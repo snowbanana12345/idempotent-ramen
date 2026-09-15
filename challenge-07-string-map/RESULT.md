@@ -35,3 +35,12 @@ cycles_per_op : 190 (submission)
 
 short two character strings goes into array
 longer strings goes into unordered_map
+
+## fnv FNV hash parallelized ##
+compute hash of 0-4 char, 0-8 char etc using instruction level parallelism
+saves ~10 cycles/op on submission server
+
+## custom hash map
+cycles_per_op: 20.5 (local)
+our own implementation of a hashmap.
+compute hash + L3 access for whole string + string compare
