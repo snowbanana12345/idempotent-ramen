@@ -5,7 +5,7 @@
 // #include "boost_hash_impl.h"
 // #include "trie_impl.h"
 // #include "hash_and_short_cache.h"
+#include "custom_hash_map.h"
 
-
-# include "fnv_hash_test.h"
+// # include "fnv_hash_test.h"
 // # include "boost_hash_test.h"

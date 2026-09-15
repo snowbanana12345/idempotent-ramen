@@ -1,3 +1,9 @@
+## --- workload characteristics ---
+100k keys total
+must return nullptr when key not exist but most keys do exist
+max 16 length keys with uniform distribution across key sizes
+
+
 ## default implementation ##
 
 cycles_per_op : 34.8 (local)
