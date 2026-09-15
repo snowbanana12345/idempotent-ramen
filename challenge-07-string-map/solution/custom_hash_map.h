@@ -7,9 +7,10 @@
 
 namespace hftu {
 
-struct Slot{ // pass the 32-byte threshold
+struct Slot{
     uint32_t value;
-    char key_[16] = {0};
+    const char* key_ = nullptr;
+    size_t key_len = 0;
 };
 
 constexpr size_t BUFFER_SIZE = 1024 * 1024;
@@ -28,17 +29,14 @@ public:
         size_t main_ptr = h % BUFFER_SIZE;
         Slot* slot = &buffer_[main_ptr]; 
 
-        char tmp[16] = {0};      
-        std::memcpy(tmp, key, key_len); 
-
-        if (memcmp(tmp, slot->key_, 16)){ // slot already taken, store in L1 collision map
+        if (key_len == slot->key_len && std::memcmp(slot->key_, key, key_len)){ // slot already taken, store in L1 collision map
             map_.emplace(CachedStringKey(key, key_len, h), value);
         }
         else {
-            std::memcpy(slot->key_, tmp, 16);
             slot->value = value;
+            slot->key_ = key;
+            slot->key_len = key_len;
         }
-        
     }
 
     const uint32_t* find(const char* key, size_t key_len) const{
@@ -47,10 +45,7 @@ public:
         size_t main_ptr = h % BUFFER_SIZE;
         Slot* slot = &buffer_[main_ptr]; 
 
-        char tmp[16] = {0};      
-        std::memcpy(tmp, key, key_len); 
-
-        if (std::memcmp(tmp, slot->key_, 16) == 0){ // key exist in this slot
+        if (slot->key_len == key_len && std::memcmp(key, slot->key_, key_len) == 0){ // key exist in this slot
             return &slot->value;
         }
         // search the collision map to see if key exists
@@ -63,6 +58,6 @@ private:
     bool has_zero = false;
     uint32_t zero_slot;
     Slot* buffer_ = new Slot[BUFFER_SIZE];
-    std::unordered_map<CachedStringKey, uint32_t, CachedStringKeyHash, CachedStringKeyEq> map_; // very small, should reside in L1 cache
+    std::unordered_map<CachedStringKey, uint32_t, CachedStringKeyHash, CachedStringKeyEq> map_;
 };
 }
