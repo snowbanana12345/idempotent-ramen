@@ -10,7 +10,9 @@ namespace hftu {
 
 class StringMap {
 public:
-    StringMap() = default;
+    StringMap(){
+        map_.reserve(1024 * 1024);
+    }
     ~StringMap() = default;
 
     void insert(const char* key, size_t key_len, uint32_t value){
@@ -24,6 +26,6 @@ public:
     }
     
 private:
-    std::unordered_map<StringKey, uint32_t, StringKeyHash, StringKeyEq> map_;
+    std::unordered_map<StringKey, uint32_t, StringKeyHash<hash_key>, StringKeyEq> map_;
 };
 }
