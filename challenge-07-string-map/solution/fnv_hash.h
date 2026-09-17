@@ -11,7 +11,7 @@ size_t hash_key(const char* key, size_t key_len) {
     seg += key_len > 2 ? static_cast<uint8_t>(key[key_len - 3]) << 16 : 0;
     seg += key_len > 3 ? static_cast<uint8_t>(key[key_len - 4]) << 24 : 0;
     seg += (key_len > 4 ? static_cast<uint8_t>(key[key_len - 5]) : 0) * h_mult;
-    return seg * key_len;
+    return seg ^ key_len * h_mult;
 }
 
 struct StringKey {

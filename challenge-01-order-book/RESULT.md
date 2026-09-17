@@ -41,4 +41,12 @@ in general, we cannot efficient search for an element in the heap. But we can st
 in a hash map to locate it. This additional work we have to do to ensure safety does double the performance cost
 
 
+## ----- hot/cold store implementations ------
+since we only need to track the best price, only the top K elements needs to be in sorted order
+where K is small enough to fit into L1 cache
+maintaining sorted order while working with the L3 cache is a huge performance bottle neck.
+we have an L3 structure that do not require sorting but only a rare rebuild
+note that the metric is median latency so that hopefully the rebuild triggering once per benchmark will not pull down the score.
 
+## ---- hot : std::multiset + std::unordered_map , cold : std::unordered_map --- 
+cycles_per_op : 32
