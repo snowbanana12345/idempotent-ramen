@@ -2,11 +2,6 @@
 
 namespace hftu{
 
-struct SmallOrder{
-    uint64_t id;
-    int64_t price;
-};
-
 class SmallBook{
         // this whole thing has to fit into L1 cache
         public:
@@ -36,7 +31,7 @@ class SmallBook{
                 return *book_.crbegin();
             }
 
-            SmallOrder pop_worst(){
+            Order pop_worst(){
                 if (book_.empty()) return {INT64_MAX, 0};
                 auto worst_it = book_.rbegin();
                 int64_t worst_price = *worst_it;
@@ -45,7 +40,7 @@ class SmallBook{
                     std::cout << "Order not found error" << std::endl;
                     return {INT64_MAX, 0};
                 }
-                SmallOrder removed = {it->first, it->second};
+                Order removed = {it->second, it->first};
                 orders_.erase(it);
                 book_.erase(std::next(worst_it).base());
                 return removed;

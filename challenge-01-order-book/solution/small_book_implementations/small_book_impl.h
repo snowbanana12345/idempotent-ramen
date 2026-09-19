@@ -4,19 +4,11 @@
 // #include "stl_vec_small.h"
 #include "boost_static_vec_small.h"
 
+#include "cold_book.h"
+
 namespace hftu {
     constexpr size_t HOT_SIZE = 16;
 
-    struct Order {
-        int64_t price;
-        uint64_t id;
-
-        Order(int64_t p, uint64_t i) : price(p), id(i) {}
-    };
-
-    struct Ascending {
-        bool operator()(const Order &a, const Order &b) { return a.price < b.price; };
-    };
 
     class OrderBook{
         public:
@@ -27,7 +19,8 @@ namespace hftu {
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
                 price = (-1 + 2 * side) * price; 
-                if (cold_orders_[side].empty() && books_[side].size() < HOT_SIZE){ // predictable branch, will not go into this branch after initialization
+                if (cold_.empty(side) && books_[side].size() < HOT_SIZE){ 
+                    // predictable branch, will not go into this branch after initialization
                     hot_sides_[id] = side;
                     books_[side].add_order(id, price);
                     return;
@@ -37,31 +30,33 @@ namespace hftu {
                     hot_sides_[id] = side;
                     books_[side].add_order(id, price);
                     if (books_[side].size() > HOT_SIZE){
-                        SmallOrder popped = books_[side].pop_worst();
-                        cold_orders_[side][popped.id] = price;
+                        Order popped = books_[side].pop_worst();
+                        cold_.add_order(popped.id, popped.price, side);
                     }
                 }
                 else {
-                    cold_orders_[side][id] = price;
+                    cold_.add_order(id, price, side);
                 }
             }
 
             void cancel_order(uint64_t id){
                 auto it = hot_sides_.find(id);
-                if (it != hot_sides_.end()){
+                if (it != hot_sides_.end()){ // triggers 1% of the time as the hot data holds 1% of the levels
                     bool side = it->second;
                     books_[side].cancel_order(id);
                     hot_sides_.erase(id);
 
-                    if (!cold_orders_[side].empty() && books_[side].size() == 0){
-                        pull_from_cold(side);
+                    if (!cold_.empty(side) && books_[side].size() == 0){ // should only trigger once in am illion
+                        std::vector<Order> cold_orders_ = cold_.pull(side, HOT_SIZE);
+                        for (const Order& order : cold_orders_){
+                            books_[side].add_order(order.id, order.price);
+                        }
                     }
 
                     return;
                 }
 
-                cold_orders_[0].erase(id);
-                cold_orders_[1].erase(id);
+                cold_.cancel_order(id);
             }
 
             int64_t best_bid() const {
@@ -73,29 +68,8 @@ namespace hftu {
             }
 
         private: 
-            std::unordered_map<uint64_t, int64_t> cold_orders_[2]; // l3 cache  
+            ColdBook cold_;
             std::unordered_map<uint64_t, bool> hot_sides_; // l1 cache
             SmallBook books_[2]; // l1 cache , maybe spill a little bit into l2
-
-            void pull_from_cold(int side){
-                 // max heap, top of heap will be the worst price
-                 // top K algorithm
-                std::cout << "triggering rebuild" << std::endl;
-                std::priority_queue<Order, std::vector<Order>, Ascending> rebuild_buffer_; 
-               
-                for (auto it = cold_orders_[side].begin(); it != cold_orders_[side].end(); it++){
-                    rebuild_buffer_.push({it->second, it->first});
-                    if (rebuild_buffer_.size() > HOT_SIZE){
-                        rebuild_buffer_.pop();
-                    }
-                }
-
-                while (!rebuild_buffer_.empty()){
-                    Order order = rebuild_buffer_.top();
-                    books_[side].add_order(order.id, order.price);
-                    cold_orders_[side].erase(order.id);
-                    rebuild_buffer_.pop();
-                }
-            }
     };
 } 

@@ -3,13 +3,6 @@
 
 namespace hftu{
 
-struct SmallOrder{
-    uint64_t id;
-    int64_t price;
-
-    SmallOrder(uint64_t id, int64_t price) : id(id), price(price) {}
-};
-
 class SmallBook{
         public:
             SmallBook() = default;
@@ -24,7 +17,7 @@ class SmallBook{
                 }
 
                 if (idx >= 0){
-                    orders_.insert(orders_.begin() + idx, {id, price});
+                    orders_.insert(orders_.begin() + idx, {price, id});
                 }
                 else {
                     orders_.emplace_back(id, price);
@@ -51,9 +44,9 @@ class SmallBook{
                 return orders_.crbegin()->price;
             }
 
-            SmallOrder pop_worst(){
+            Order pop_worst(){
                 if (orders_.empty()) return {INT64_MAX, 0};
-                SmallOrder removed = *orders_.rbegin();
+                Order removed = *orders_.rbegin();
                 orders_.pop_back();
                 return removed;
             }
@@ -63,6 +56,6 @@ class SmallBook{
             }
         
         private:
-            std::vector<SmallOrder> orders_;
+            std::vector<Order> orders_;
     };
 }
