@@ -20,7 +20,9 @@ namespace hftu {
     class OrderBook{
         public:
             OrderBook() = default;
-            ~OrderBook() = default;
+            ~OrderBook() {
+
+            }
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
                 price = (-1 + 2 * side) * price; 
@@ -30,7 +32,7 @@ namespace hftu {
                     return;
                 }
 
-                if (price < books_[side].worst()){
+                if (books_[side].size() > 0 && price < books_[side].worst()){
                     hot_sides_[id] = side;
                     books_[side].add_order(id, price);
                     if (books_[side].size() > HOT_SIZE){
@@ -50,7 +52,7 @@ namespace hftu {
                     books_[side].cancel_order(id);
                     hot_sides_.erase(id);
 
-                    if (books_[side].size() == 0){
+                    if (!cold_orders_[side].empty() && books_[side].size() == 0){
                         pull_from_cold(side);
                     }
 
