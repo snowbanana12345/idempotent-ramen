@@ -1,21 +1,10 @@
-#include "base.h"
+#include "../base.h"
 
+// #include "stl_multi_map_small.h"
+#include "stl_vec_small.h"
 
 namespace hftu {
-    /*
-    a priority_queue tracks the best bid/ask
-    hash map tracks the active orders
-
-    add_order():O(log n) 
-    cancel_order(): O(1)
-    best_bid(): O(log n)
-    best_ask(): O(log n)
-
-    disclaimber : this solution works very well on the workload.
-    But is a scenario where a lot of invalidated orders pile up in the pq, leading to infinity memory usage
-    */
-
-    constexpr size_t HOT_SIZE = 128;
+    constexpr size_t HOT_SIZE = 16;
 
     struct Order {
         int64_t price;
@@ -28,45 +17,6 @@ namespace hftu {
         bool operator()(const Order &a, const Order &b) { return a.price < b.price; };
     };
 
-
-    class SmallBook{
-        // this whole thing has to fit into L1 cache
-        public:
-            SmallBook() = default;
-            ~SmallBook() = default;
-
-            void add_order(uint64_t id, int64_t price){
-                orders_[id] = price;
-                book_.insert(price);
-            }
-
-            void cancel_order(uint64_t id){
-                auto it = orders_.find(id);
-                if (it == orders_.end()) return; // predictable, will always skip for the dataset
-                auto b_it = book_.find(it->second);
-                if (b_it != book_.end()) book_.erase(b_it); // predictable, will always be true for the dataset
-                orders_.erase(it);
-            }
-
-            int64_t best() const {
-                if (book_.empty()) return 0;
-                return *book_.cbegin();
-            }
-
-            int64_t worst() const {
-                if (book_.empty()) return 0;
-                return *book_.crbegin();
-            }
-
-            uint32_t size() const{
-                return orders_.size();
-            }
-        
-        private:
-            std::unordered_map<uint64_t, int64_t> orders_;
-            std::multiset<int64_t> book_;
-    };
-
     class OrderBook{
         public:
             OrderBook() = default;
@@ -74,20 +24,19 @@ namespace hftu {
 
             void add_order(uint64_t id, int side, int64_t price, int64_t quantity){
                 price = (-1 + 2 * side) * price; 
-                if (cold_orders_[side].empty()){ // predictable branch, will not go into this branch after initialization
-                    if (books_[side].size() < HOT_SIZE) { // predicatable, will be triggered 256 times on initialization
-                        hot_sides_[id] = side;
-                        books_[side].add_order(id, price);
-                    }
-                    else {
-                        cold_orders_[side][id] = price; // will be triggered once on initialization
-                    }
+                if (cold_orders_[side].empty() && books_[side].size() < HOT_SIZE){ // predictable branch, will not go into this branch after initialization
+                    hot_sides_[id] = side;
+                    books_[side].add_order(id, price);
                     return;
                 }
 
-                if (price < books_[side].worst() && books_[side].size() < HOT_SIZE){ // push the better price into hot store
+                if (price < books_[side].worst()){
                     hot_sides_[id] = side;
                     books_[side].add_order(id, price);
+                    if (books_[side].size() > HOT_SIZE){
+                        SmallOrder popped = books_[side].pop_worst();
+                        cold_orders_[side][popped.id] = price;
+                    }
                 }
                 else {
                     cold_orders_[side][id] = price;
