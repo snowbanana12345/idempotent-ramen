@@ -1,7 +1,8 @@
 #include "../base.h"
 
 // #include "stl_multi_map_small.h"
-#include "stl_vec_small.h"
+// #include "stl_vec_small.h"
+#include "boost_static_vec_small.h"
 
 namespace hftu {
     constexpr size_t HOT_SIZE = 16;
